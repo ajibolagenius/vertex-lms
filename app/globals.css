@@ -22,6 +22,11 @@
   --color-neutral-100: #f1f5f9;
   --color-neutral-50: #fafafc;
 
+  /* Warm paper surfaces — the home page's page/card/hairline colours. */
+  --color-paper: #fbf8f6;
+  --color-surface: #fdfbfa;
+  --color-line: #f0e8e2;
+
   --color-success: #16a34a;
   --color-lesson-bg: #eef0fe;
   --color-lesson-fg: #4f46e5;
@@ -89,6 +94,17 @@
   font-size: 12px;
   line-height: 16px;
   font-weight: 400;
+}
+
+/* The diagonal hatch filling the page gutters either side of the frame. */
+@utility bg-hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-line) 0,
+    var(--color-line) 1px,
+    transparent 1px,
+    transparent 11px
+  );
 }
 
 body {

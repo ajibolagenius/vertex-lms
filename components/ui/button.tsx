@@ -1,9 +1,16 @@
 import type { ComponentProps, ReactNode } from "react";
+import Link from "next/link";
 import { CirclePlay, SquareArrowOutUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const base = [
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium",
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+  "disabled:cursor-not-allowed disabled:pointer-events-none",
+].join(" ");
+
 export type ButtonVariant = "primary" | "secondary" | "tertiary" | "text";
-export type ButtonSize = "lg" | "md";
+export type ButtonSize = "xl" | "lg" | "md";
 /** `hover` and `disabled` render the state statically, for the design-system sheet. */
 export type ButtonState = "default" | "hover" | "disabled";
 
@@ -34,14 +41,37 @@ const variants: Record<ButtonVariant, Record<ButtonState, string>> = {
 
 /* Button type is set explicitly (Inter Medium 14–16px), not from the type scale. */
 const sizes: Record<ButtonSize, string> = {
-  lg: "px-4 text-[16px]",
-  md: "px-3 text-[14px]",
+  /* Hero call to action: 60px tall, roomier padding, wider icon gap. */
+  xl: "h-[60px] px-7 text-[16px] gap-3",
+  lg: "h-11 px-4 text-[16px]",
+  md: "h-11 px-3 text-[14px]",
 };
 
 const icons: Partial<Record<ButtonVariant, ReactNode>> = {
   tertiary: <SquareArrowOutUpRight size={16} aria-hidden="true" />,
   text: <CirclePlay size={16} aria-hidden="true" />,
 };
+
+/** Same surface as `Button`, for a call to action that navigates. */
+export function ButtonLink({
+  href,
+  variant = "primary",
+  size = "lg",
+  className,
+  children,
+}: {
+  href: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link href={href} className={cn(base, sizes[size], variants[variant].default, className)}>
+      {children}
+    </Link>
+  );
+}
 
 export function Button({
   variant = "primary",
@@ -59,12 +89,10 @@ export function Button({
     <button
       disabled={state === "disabled" || props.disabled}
       className={cn(
-        "inline-flex h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
-        "disabled:cursor-not-allowed disabled:pointer-events-none",
+        base,
         // The text variant has no surface: no height, no padding, size only.
         variant === "text"
-          ? cn("h-auto", size === "lg" ? "text-[16px]" : "text-[14px]")
+          ? cn("h-auto", size === "md" ? "text-[14px]" : "text-[16px]")
           : sizes[size],
         variants[variant][state],
         className,
