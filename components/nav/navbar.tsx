@@ -16,8 +16,10 @@ export function Navbar({
       aria-label="Main"
       className={cn("flex flex-wrap items-center gap-8", className)}
     >
+      {/* Named here because the wordmark is hidden below `sm` and the mark is decorative. */}
       <Link
         href="/"
+        aria-label="Vertex home"
         className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
       >
         <Logo size={24} />
