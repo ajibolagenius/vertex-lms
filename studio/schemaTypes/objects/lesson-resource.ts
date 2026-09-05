@@ -3,21 +3,17 @@ import {LinkIcon} from '@sanity/icons'
 
 /** One card in the lesson page's Resources row. */
 export const lessonResource = defineType({
-  name: 'lessonResource',
+  name: 'resource',
   title: 'Resource',
   type: 'object',
   icon: LinkIcon,
   fields: [
     defineField({
-      name: 'resourceType',
+      name: 'type',
       title: 'Type',
       type: 'string',
       options: {
-        list: [
-          {title: 'Documentation', value: 'documentation'},
-          {title: 'Guide', value: 'guide'},
-          {title: 'Repository', value: 'repository'},
-        ],
+        list: [{title: 'Link', value: 'link'}],
       },
       validation: (rule) => rule.required(),
     }),
@@ -38,6 +34,6 @@ export const lessonResource = defineType({
     }),
   ],
   preview: {
-    select: {title: 'title', subtitle: 'resourceType'},
+    select: {title: 'title', subtitle: 'type'},
   },
 })

@@ -23,7 +23,7 @@ const COURSE_CARD_FIELDS = /* groq */ `
   category->{title, "slug": slug.current},
   "moduleCount": count(modules),
   "lessonCount": count(modules[].lessons[]),
-  "durationSeconds": math::sum(modules[].lessons[]->durationSeconds)
+  "duration": math::sum(modules[].lessons[]->duration)
 `
 
 export const COURSES_QUERY = defineQuery(/* groq */ `
@@ -53,12 +53,12 @@ export const COURSE_BY_SLUG_QUERY = defineQuery(/* groq */ `
       _key,
       title,
       summary,
-      "durationSeconds": math::sum(lessons[]->durationSeconds),
+      "duration": math::sum(lessons[]->duration),
       lessons[]->{
         _id,
         title,
         "slug": slug.current,
-        durationSeconds,
+        duration,
         freePreview
       }
     }
@@ -76,8 +76,8 @@ export const LESSON_BY_SLUG_QUERY = defineQuery(/* groq */ `
     title,
     "slug": slug.current,
     videoUrl,
-    poster,
-    durationSeconds,
+    thumbnail,
+    duration,
     freePreview,
     studentCount,
     notes,
@@ -85,7 +85,7 @@ export const LESSON_BY_SLUG_QUERY = defineQuery(/* groq */ `
     proTip,
     resources[]{
       _key,
-      resourceType,
+      type,
       title,
       description,
       url
@@ -104,7 +104,7 @@ export const LESSON_BY_SLUG_QUERY = defineQuery(/* groq */ `
           _id,
           title,
           "slug": slug.current,
-          durationSeconds
+          duration
         }
       }
     }

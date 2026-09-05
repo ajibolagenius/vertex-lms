@@ -15,9 +15,13 @@ export const learningOutcome = defineType({
       options: {
         list: [
           {title: 'Layers', value: 'layers'},
-          {title: 'Database', value: 'database'},
+          {title: 'Workflow', value: 'workflow'},
           {title: 'Gauge', value: 'gauge'},
-          {title: 'Cloud', value: 'cloud'},
+          {title: 'Rocket', value: 'rocket'},
+          {title: 'Sparkles', value: 'sparkles'},
+          {title: 'Shield', value: 'shield'},
+          {title: 'Puzzle', value: 'puzzle'},
+          {title: 'Code', value: 'code'},
         ],
       },
       validation: (rule) => rule.required(),

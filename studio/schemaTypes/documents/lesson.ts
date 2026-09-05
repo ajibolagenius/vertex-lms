@@ -38,7 +38,7 @@ export const lesson = defineType({
       validation: (rule) => rule.required().uri({scheme: ['https']}),
     }),
     defineField({
-      name: 'poster',
+      name: 'thumbnail',
       title: 'Poster image',
       type: 'image',
       group: 'video',
@@ -52,7 +52,7 @@ export const lesson = defineType({
       ],
     }),
     defineField({
-      name: 'durationSeconds',
+      name: 'duration',
       title: 'Duration (seconds)',
       description: 'Stored in seconds. "1h 28m" is formatted at render time.',
       type: 'number',
@@ -101,13 +101,13 @@ export const lesson = defineType({
       name: 'resources',
       type: 'array',
       group: 'content',
-      of: [defineArrayMember({type: 'lessonResource'})],
+      of: [defineArrayMember({type: 'resource'})],
     }),
   ],
   preview: {
-    select: {title: 'title', media: 'poster', durationSeconds: 'durationSeconds'},
-    prepare({title, media, durationSeconds}) {
-      const minutes = Math.round((durationSeconds ?? 0) / 60)
+    select: {title: 'title', media: 'thumbnail', duration: 'duration'},
+    prepare({title, media, duration}) {
+      const minutes = Math.round((duration ?? 0) / 60)
       return {title, media, subtitle: `${minutes}m`}
     },
   },
