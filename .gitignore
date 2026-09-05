@@ -41,5 +41,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# sanity studio (its own workspace)
+/studio/node_modules
+/studio/dist
+/studio/schema.json
+/studio/.sanity
+
 # misc
 LMS_Vertex
