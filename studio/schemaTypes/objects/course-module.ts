@@ -6,7 +6,7 @@ import {ThListIcon} from '@sanity/icons'
  * "Module 5 of 12" is derived from position, never stored.
  */
 export const courseModule = defineType({
-  name: 'courseModule',
+  name: 'module',
   title: 'Module',
   type: 'object',
   icon: ThListIcon,

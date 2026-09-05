@@ -109,7 +109,7 @@ export const course = defineType({
       description: 'Ordered. "Module 5 of 12" is derived from this order.',
       type: 'array',
       group: 'content',
-      of: [defineArrayMember({type: 'courseModule'})],
+      of: [defineArrayMember({type: 'module'})],
       validation: (rule) => rule.required().min(1),
     }),
   ],
