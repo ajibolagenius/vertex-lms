@@ -1,5 +1,7 @@
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Bell } from "lucide-react";
 import { Navbar, type NavItem } from "@/components/nav/navbar";
+import { Button } from "@/components/ui/button";
 
 const items: NavItem[] = [
   { label: "Courses", href: "/courses" },
@@ -7,8 +9,9 @@ const items: NavItem[] = [
 ];
 
 /**
- * The frame header. The bell and the avatar are presentational (AGENTS §7) — Clerk supplies the
- * real user later.
+ * The frame header. The bell is presentational (AGENTS §7); the account control is Clerk. Signed
+ * in matches the reference design's 50px circle — signed out has no reference, so it reuses the
+ * design-system button surfaces at the same row height.
  */
 export function SiteHeader() {
   return (
@@ -23,13 +26,30 @@ export function SiteHeader() {
           >
             <Bell size={22} strokeWidth={1.5} aria-hidden="true" />
           </button>
-          <span
-            aria-label="Your account"
-            role="img"
-            className="flex size-[50px] items-center justify-center rounded-full border border-line bg-primary-100 text-[15px] font-medium text-primary-500"
-          >
-            AA
-          </span>
+          <Show when="signed-in">
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonAvatarBox:
+                    "size-[50px] border border-line bg-primary-100",
+                  userButtonTrigger:
+                    "rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+                },
+              }}
+            />
+          </Show>
+          <Show when="signed-out">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <SignInButton>
+                <Button variant="secondary" size="md">
+                  Sign in
+                </Button>
+              </SignInButton>
+              <SignUpButton>
+                <Button size="md">Sign up</Button>
+              </SignUpButton>
+            </div>
+          </Show>
         </div>
       </div>
     </header>
