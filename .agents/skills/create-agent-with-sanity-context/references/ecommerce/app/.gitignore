@@ -40,5 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# misc
-LMS_Vertex
+# sanity typegen - committed for Vercel builds
+# sanity.types.ts
