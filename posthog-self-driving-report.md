@@ -100,11 +100,13 @@ A Replay Vision scanner is an LLM that watches individual session recordings on 
 
 Both were created through the PostHog MCP after it was authenticated, along with a third
 Summarizer, "Vertex learner session summaries". See `posthog-replay-vision-report.md` for
-the live IDs, triggers and sampling as configured. The as-built scanners diverge from the
+the live IDs, triggers and sampling as configured. The as-built scanners diverged from the
 configs below: they run `gemini-3-flash-preview` rather than Flash Lite, the frustration
 monitor is triggered site-wide on `$rageclick` rather than URL-scoped, and sampling is
-higher (1.0 and 0.5). Treat the tables below as the original intent and the sibling report
-as the source of truth; revisit sampling and model once real traffic shows the credit burn.
+higher (1.0 and 0.5). The model and sampling divergence is being reverted to the Flash Lite
+plan below — see "Cost plan" in `posthog-replay-vision-report.md`. The site-wide frustration
+trigger is kept: the two monitors are separated by what each prompt owns, not by URL — see
+"Overlap fix" in the same report.
 
 The PostHog MCP server was added at user scope on 2026-09-06
 (`claude mcp add --transport http posthog https://mcp.posthog.com/mcp -s user`).
@@ -177,7 +179,8 @@ Known limitation: the provider video embeds (YouTube, Vimeo, Bunny) are cross-or
 - [x] Write the two Replay Vision scanner configs in PostHog's six-field shape (see above).
 - [x] Add the PostHog MCP server at user scope.
 - [x] Authenticate the PostHog MCP and create the scanners — three are live, see `posthog-replay-vision-report.md`.
-- [ ] Once real traffic lands, review the as-built sampling (1.0 / 0.5 / 0.1) and model (`gemini-3-flash-preview`, 5 credits per observation) against the 2,500-credit balance.
+- [ ] Apply the Flash Lite cost plan in PostHog: all three scanners to Gemini 3.5 Flash Lite, both monitors to 1% sampling.
+- [ ] Replace both monitor prompts with the mutually exclusive versions in `posthog-replay-vision-report.md` so one defect stops producing two observations.
 - [ ] Generate session recordings through the web app, then create the two monitors from the briefs above.
 - [ ] Add search-result, video-playback, and lesson-completion outcome events when those product flows ship; this will support stronger learning-search and lesson-progress monitoring.
 
