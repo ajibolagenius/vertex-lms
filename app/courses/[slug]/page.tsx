@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowRight,
-  Bookmark,
   ChartNoAxesColumn,
   ChevronDown,
   Clock,
@@ -25,6 +24,7 @@ import { Breadcrumbs } from "@/components/nav/breadcrumbs";
 import { SiteHeader } from "@/components/nav/site-header";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { CourseViewTracker, BookmarkButton, ContinueLearningButton } from "@/components/course-actions";
 import { formatCount, formatDuration, formatLevel, pluralize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { urlFor } from "@/sanity/lib/image";
@@ -98,6 +98,11 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
         <SiteHeader />
 
         <main className="px-6 pt-7 sm:px-8">
+          <CourseViewTracker
+            courseSlug={slug}
+            courseTitle={course.title ?? ""}
+            courseLevel={course.level ?? undefined}
+          />
           <Breadcrumbs
             items={[
               { label: "All Courses", href: "/courses" },
@@ -160,20 +165,11 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
 
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 {resumeHref && (
-                  <ButtonLink href={resumeHref} size="xl" className="h-[56px] px-7">
-                    Continue Learning
-                    <ArrowRight size={18} aria-hidden="true" />
-                  </ButtonLink>
+                  <ContinueLearningButton href={resumeHref} />
                 )}
                 {/* Presentational, like the header bell (AGENTS §7). `Button`'s tertiary
                     variant appends its own icon, so this one is plain markup. */}
-                <button
-                  type="button"
-                  className="inline-flex h-[56px] items-center gap-3 rounded-md border border-line bg-surface px-6 text-[16px] font-medium text-neutral-900 hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-                >
-                  <Bookmark size={18} aria-hidden="true" />
-                  Bookmark
-                </button>
+                <BookmarkButton />
               </div>
             </div>
           </section>
