@@ -179,8 +179,9 @@ Known limitation: the provider video embeds (YouTube, Vimeo, Bunny) are cross-or
 - [x] Write the two Replay Vision scanner configs in PostHog's six-field shape (see above).
 - [x] Add the PostHog MCP server at user scope.
 - [x] Authenticate the PostHog MCP and create the scanners — three are live, see `posthog-replay-vision-report.md`.
-- [ ] Apply the Flash Lite cost plan in PostHog: all three scanners to Gemini 3.5 Flash Lite, both monitors to 1% sampling.
-- [ ] Replace both monitor prompts with the mutually exclusive versions in `posthog-replay-vision-report.md` so one defect stops producing two observations.
+- [x] Apply the Flash Lite cost plan in PostHog: all four scanners on Gemini 3.5 Flash Lite, both monitors at 1% sampling (applied 2026-09-06 via the PostHog MCP).
+- [x] Replace both monitor prompts with the mutually exclusive versions in `posthog-replay-vision-report.md` so one defect stops producing two observations.
+- [ ] Generate the first session recordings: a 7-day query returned zero, so no scanner has anything to watch yet.
 - [ ] Generate session recordings through the web app, then create the two monitors from the briefs above.
 - [ ] Add search-result, video-playback, and lesson-completion outcome events when those product flows ship; this will support stronger learning-search and lesson-progress monitoring.
 
