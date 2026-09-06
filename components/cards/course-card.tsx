@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { ChartNoAxesColumn, Clock, File, Folder } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ export function CourseCard({
   duration,
   modules,
   mark,
+  href,
   variant = "compact",
   className,
 }: {
@@ -23,6 +25,8 @@ export function CourseCard({
   modules: string;
   /** The brand tile. `feature` expects it to carry its own background. */
   mark?: ReactNode;
+  /** When set, the whole card navigates. */
+  href?: string;
   variant?: CourseCardVariant;
   className?: string;
 }) {
@@ -33,10 +37,15 @@ export function CourseCard({
     feature ? "gap-1" : "gap-1.5",
   );
 
-  return (
+  const card = (
     <Card
       tone={feature ? "paper" : "white"}
-      className={cn("flex flex-col", feature ? "min-h-[400px] gap-7 p-6" : "gap-4", className)}
+      className={cn(
+        "flex flex-col",
+        feature ? "min-h-[400px] gap-7 p-6" : "gap-4",
+        href && "h-full transition-shadow hover:shadow-md",
+        className,
+      )}
     >
       <div className={cn("flex", feature ? "flex-col gap-7" : "gap-3")}>
         <span
@@ -98,5 +107,15 @@ export function CourseCard({
         </span>
       </div>
     </Card>
+  );
+
+  if (!href) return card;
+  return (
+    <Link
+      href={href}
+      className="rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+    >
+      {card}
+    </Link>
   );
 }
