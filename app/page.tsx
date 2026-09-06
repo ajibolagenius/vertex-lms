@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
 import { SiteHeader } from "@/components/nav/site-header";
-import { ButtonLink } from "@/components/ui/button";
-import { SearchInput } from "@/components/ui/search-input";
 import { CourseGrid } from "@/components/cards/course-grid";
 import { ChartDecoration } from "@/components/decor/chart-decoration";
+import { HomeCta } from "@/components/home-cta";
 import { sanityFetch } from "@/sanity/lib/fetch";
 import { COURSES_QUERY } from "@/sanity/lib/queries";
 
@@ -33,19 +32,7 @@ export default async function Home() {
               lessons across all your courses.
             </p>
 
-            <ButtonLink href="/courses" size="xl" className="mt-10 px-8">
-              Explore Courses
-              <ArrowRight size={20} aria-hidden="true" />
-            </ButtonLink>
-
-            <SearchInput
-              id="home-search"
-              variant="hero"
-              label="Ask anything about your learning"
-              placeholder="Ask anything about your learning..."
-              readOnly
-              className="mx-auto mt-10 max-w-[748px] text-left"
-            />
+            <HomeCta />
           </section>
 
           {/* Nothing to show — and no heading, divider or blank grid — on an empty dataset. */}
