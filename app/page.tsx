@@ -48,41 +48,43 @@ export default async function Home() {
             />
           </section>
 
-          <section className="border-t border-line px-6 pt-14 sm:px-12">
-            <div className="flex flex-wrap items-baseline justify-between gap-4">
-              <h2 className="font-display text-[28px] leading-[38px] text-black">
-                All Courses
-              </h2>
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 text-[15px] font-medium text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-              >
-                View all courses
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
+          {/* Nothing to show — and no heading, divider or blank grid — on an empty dataset. */}
+          {courses.length > 0 && (
+            <section className="border-t border-line px-6 pt-14 sm:px-12">
+              <div className="flex flex-wrap items-baseline justify-between gap-4">
+                <h2 className="font-display text-[28px] leading-[38px] text-black">
+                  All Courses
+                </h2>
+                <Link
+                  href="/courses"
+                  className="inline-flex items-center gap-2 text-[15px] font-medium text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+                >
+                  View all courses
+                  <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+              </div>
 
-            <CourseGrid courses={courses.slice(0, 3)} className="mt-8" />
+              <CourseGrid courses={courses.slice(0, 3)} className="mt-8" />
 
-            <div className="flex items-center gap-4 pt-16">
-              <span className="hidden h-px flex-1 bg-line sm:block" />
-              <span className="flex min-w-0 items-center gap-6">
-                <Star
-                  size={22}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                  className="text-primary-500"
-                />
-                <span className="text-[16px] leading-[24px] text-neutral-700">
-                  New courses and lessons added every week.
+              <div className="flex items-center gap-4 pt-16">
+                <span className="hidden h-px flex-1 bg-line sm:block" />
+                <span className="flex min-w-0 items-center gap-6">
+                  <Star
+                    size={22}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                    className="text-primary-500"
+                  />
+                  <span className="text-[16px] leading-[24px] text-neutral-700">
+                    New courses and lessons added every week.
+                  </span>
                 </span>
-              </span>
-              <span className="hidden h-px flex-1 bg-line sm:block" />
-            </div>
-          </section>
+                <span className="hidden h-px flex-1 bg-line sm:block" />
+              </div>
+            </section>
+          )}
 
           <ChartDecoration className="mt-8" />
-
         </main>
       </div>
     </div>

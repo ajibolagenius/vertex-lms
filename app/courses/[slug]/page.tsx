@@ -49,7 +49,15 @@ const outcomeIcons: Record<string, LucideIcon> = {
 /** Modules beyond this many hide behind the "Show all" pill, as in the reference. */
 const COLLAPSE_AFTER = 6;
 
+/**
+ * The `/lessons/[slug]` route does not exist yet, so lesson links would 404.
+ * Until it lands, lesson rows render inert and the "Continue Learning" calls to
+ * action are omitted. Flip this to `true` when the lesson page ships.
+ */
+const LESSON_ROUTE_READY: boolean = false;
+
 const panel = "rounded-lg border border-line bg-surface";
+const lessonRow = "flex items-center gap-4 rounded-md py-3 text-[14px] leading-[20px]";
 
 async function getCourse(slug: string) {
   return sanityFetch({ query: COURSE_BY_SLUG_QUERY, params: { slug } });
@@ -80,7 +88,8 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
   const moduleCount = course.moduleCount ?? modules.length;
   const firstLesson = modules.flatMap((m) => m.lessons ?? [])[0];
   /* Progress is not implemented yet (AGENTS §7), so the CTA resumes at the first lesson. */
-  const resumeHref = firstLesson?.slug ? `/lessons/${firstLesson.slug}` : `/courses/${slug}`;
+  const resumeHref =
+    LESSON_ROUTE_READY && firstLesson?.slug ? `/lessons/${firstLesson.slug}` : null;
   const duration = formatDuration(course.duration);
 
   return (
@@ -150,10 +159,12 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
               </ul>
 
               <div className="mt-8 flex flex-wrap items-center gap-4">
-                <ButtonLink href={resumeHref} size="xl" className="h-[56px] px-7">
-                  Continue Learning
-                  <ArrowRight size={18} aria-hidden="true" />
-                </ButtonLink>
+                {resumeHref && (
+                  <ButtonLink href={resumeHref} size="xl" className="h-[56px] px-7">
+                    Continue Learning
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </ButtonLink>
+                )}
                 {/* Presentational, like the header bell (AGENTS §7). `Button`'s tertiary
                     variant appends its own icon, so this one is plain markup. */}
                 <button
@@ -221,14 +232,14 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
                 className="peer sr-only"
                 defaultChecked={modules.length <= COLLAPSE_AFTER}
               />
-              <ol className={`overflow-hidden ${panel}`}>
+              {/* `peer-*` only reaches siblings of the input, so the reveal is driven
+                  from the <ol> (a sibling) down into its rows. */}
+              <ol className={`overflow-hidden peer-checked:[&>li]:block ${panel}`}>
                 {modules.map((module, index) => (
                   <li
                     key={module._key}
                     className={`border-line not-first:border-t ${
-                      index >= COLLAPSE_AFTER
-                        ? "hidden peer-checked:block"
-                        : ""
+                      index >= COLLAPSE_AFTER ? "hidden" : ""
                     }`}
                   >
                     <ModuleRow
@@ -241,16 +252,15 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
                 ))}
               </ol>
               {modules.length > COLLAPSE_AFTER && (
-                <div className="-mt-[22px] flex justify-center peer-checked:hidden">
-                  <label
-                    htmlFor="show-all-modules"
-                    tabIndex={0}
-                    className="inline-flex h-[45px] cursor-pointer items-center gap-3 rounded-md border border-line bg-paper px-6 text-[15px] text-neutral-900 hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-                  >
-                    Show all {moduleCount} modules
-                    <ChevronDown size={16} aria-hidden="true" />
-                  </label>
-                </div>
+                /* A direct sibling of the input, so `peer-*` applies: the hidden
+                   checkbox stays the only tab stop and shows its ring on this pill. */
+                <label
+                  htmlFor="show-all-modules"
+                  className="-mt-[22px] mx-auto flex h-[45px] w-fit cursor-pointer items-center gap-3 rounded-md border border-line bg-paper px-6 text-[15px] text-neutral-900 hover:text-primary-500 peer-checked:hidden peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-500"
+                >
+                  Show all {moduleCount} modules
+                  <ChevronDown size={16} aria-hidden="true" />
+                </label>
               )}
             </div>
           </section>
@@ -320,12 +330,9 @@ function ModuleRow({
       </summary>
 
       <ol className="border-t border-line py-2 pr-6 pl-[62px] sm:pr-7 sm:pl-[66px]">
-        {lessons.map((lesson, lessonIndex) => (
-          <li key={lesson._id}>
-            <Link
-              href={`/lessons/${lesson.slug}`}
-              className="flex items-center gap-4 rounded-md py-3 text-[14px] leading-[20px] hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-            >
+        {lessons.map((lesson, lessonIndex) => {
+          const row = (
+            <>
               <Play size={14} aria-hidden="true" className="shrink-0 text-primary-500" />
               <span className="w-9 shrink-0 text-neutral-500 tabular-nums">
                 {index + 1}.{lessonIndex + 1}
@@ -339,9 +346,23 @@ function ModuleRow({
               <span className="shrink-0 text-neutral-500">
                 {formatDuration(lesson.duration)}
               </span>
-            </Link>
-          </li>
-        ))}
+            </>
+          );
+          return (
+            <li key={lesson._id}>
+              {LESSON_ROUTE_READY ? (
+                <Link
+                  href={`/lessons/${lesson.slug}`}
+                  className={`${lessonRow} hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500`}
+                >
+                  {row}
+                </Link>
+              ) : (
+                <div className={lessonRow}>{row}</div>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </details>
   );
@@ -356,7 +377,7 @@ function CourseProgressBar({
   resumeHref,
 }: {
   percentComplete: number;
-  resumeHref: string;
+  resumeHref: string | null;
 }) {
   const pct = Math.min(100, Math.max(0, Math.round(percentComplete)));
   return (
@@ -378,10 +399,12 @@ function CourseProgressBar({
       >
         <div className="h-full rounded-full bg-primary-500" style={{ width: `${pct}%` }} />
       </div>
-      <ButtonLink href={resumeHref} size="xl" className="ml-auto h-[55px] w-full px-7 sm:w-auto">
-        Continue Learning
-        <ArrowRight size={18} aria-hidden="true" />
-      </ButtonLink>
+      {resumeHref && (
+        <ButtonLink href={resumeHref} size="xl" className="ml-auto h-[55px] w-full px-7 sm:w-auto">
+          Continue Learning
+          <ArrowRight size={18} aria-hidden="true" />
+        </ButtonLink>
+      )}
     </div>
   );
 }
