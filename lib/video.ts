@@ -17,10 +17,13 @@ export function youtubeId(url: string | null | undefined): string | null {
     return null;
   }
   const host = parsed.hostname.replace(/^www\./, "");
+  // Exact host or a real subdomain of it — a bare `endsWith` would accept
+  // notyoutube.com and hand an attacker-controlled host to the embed.
+  const isHost = (domain: string) => host === domain || host.endsWith(`.${domain}`);
   const id =
     host === "youtu.be"
       ? parsed.pathname.slice(1)
-      : host.endsWith("youtube.com") || host.endsWith("youtube-nocookie.com")
+      : isHost("youtube.com") || isHost("youtube-nocookie.com")
         ? (parsed.searchParams.get("v") ?? parsed.pathname.match(/^\/embed\/([^/]+)/)?.[1])
         : null;
   return id && /^[\w-]{6,20}$/.test(id) ? id : null;

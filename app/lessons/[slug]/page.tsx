@@ -154,7 +154,11 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
   const next = position >= 0 ? flat[position + 1]?.item : undefined;
 
   const { lede, body } = splitNotes(lesson.notes);
-  const resources = lesson.resources ?? [];
+  // A resource with no url has nothing to open, so it never becomes a card — this
+  // also keeps the Resources heading hidden when none of them are linkable.
+  const resources = (lesson.resources ?? []).filter(
+    (r): r is typeof r & { url: string } => Boolean(r.url),
+  );
 
   return (
     <div className="flex-1 bg-hatch px-0 sm:px-8">
@@ -183,7 +187,12 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
               items={[
                 { label: "All Courses", href: "/courses" },
                 ...(course
-                  ? [{ label: course.title ?? "Course", href: `/courses/${course.slug}` }]
+                  ? [
+                      {
+                        label: course.title ?? "Course",
+                        href: course.slug ? `/courses/${course.slug}` : undefined,
+                      },
+                    ]
                   : []),
                 ...(modules[moduleIndex]?.title
                   ? [{ label: modules[moduleIndex].title as string }]
@@ -285,7 +294,7 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
                               <ResourceLink
                                 title={resource.title ?? ""}
                                 description={resource.description ?? ""}
-                                url={resource.url ?? "#"}
+                                url={resource.url}
                               />
                             </li>
                           ))}

@@ -338,12 +338,16 @@ function ModuleRow({
           );
           return (
             <li key={lesson._id}>
-              <Link
-                href={`/lessons/${lesson.slug}`}
-                className={`${lessonRow} hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500`}
-              >
-                {row}
-              </Link>
+              {lesson.slug ? (
+                <Link
+                  href={`/lessons/${lesson.slug}`}
+                  className={`${lessonRow} hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500`}
+                >
+                  {row}
+                </Link>
+              ) : (
+                <span className={lessonRow}>{row}</span>
+              )}
             </li>
           );
         })}

@@ -37,13 +37,15 @@ export function LessonSidebar({
   return (
     <aside className="w-full shrink-0 border-t border-line lg:w-[278px] lg:border-t-0 lg:border-r">
       <div className="px-6 py-8 sm:px-10">
-        <Link
-          href={`/courses/${course.slug}`}
-          className="inline-flex items-center gap-3 font-display text-[15px] leading-[22px] font-semibold text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-        >
-          <ArrowLeft size={16} aria-hidden="true" />
-          Back to course
-        </Link>
+        {course.slug && (
+          <Link
+            href={`/courses/${course.slug}`}
+            className="inline-flex items-center gap-3 font-display text-[15px] leading-[22px] font-semibold text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          >
+            <ArrowLeft size={16} aria-hidden="true" />
+            Back to course
+          </Link>
+        )}
 
         <div className="mt-7 flex items-start gap-4">
           {course.coverImage?.asset && (
@@ -229,8 +231,8 @@ function LessonRow({
 
   const row = "flex items-start gap-4 py-2 pr-5 pl-7";
 
-  return isCurrent ? (
-    <div aria-current="page" className={row}>
+  return isCurrent || !lesson.slug ? (
+    <div aria-current={isCurrent ? "page" : undefined} className={row}>
       {body}
     </div>
   ) : (
