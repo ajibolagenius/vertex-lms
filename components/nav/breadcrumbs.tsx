@@ -14,10 +14,13 @@ export function Breadcrumbs({
   return (
     <nav aria-label="Breadcrumb" className={className}>
       <ol className="flex flex-wrap items-center gap-2 text-[14px] leading-[20px]">
+        {/* Keyed by position: two crumbs can share a label — a lesson whose title
+            matches its module's, as in the reference design — and the list is
+            static per render, never reordered. */}
         {items.map((item, i) => {
           const isLast = i === items.length - 1;
           return (
-            <li key={item.label} className="flex items-center gap-2">
+            <li key={i} className="flex items-center gap-2">
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
