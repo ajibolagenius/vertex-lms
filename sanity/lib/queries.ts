@@ -100,6 +100,7 @@ export const LESSON_BY_SLUG_QUERY = defineQuery(/* groq */ `
       modules[]{
         _key,
         title,
+        "duration": math::sum(lessons[]->duration),
         lessons[]->{
           _id,
           title,

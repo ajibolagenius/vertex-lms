@@ -16,8 +16,8 @@ Session recording is **live**. The project had `session_replay` already enabled 
 | **ID** | `01a07576-7768-7b0d-9e07-4e2c67c0e6ef` |
 | **Type** | Monitor |
 | **Trigger** | `$rageclick` (site-wide, no URL scope) |
-| **Sampling rate** | 1.0 (every matched session) |
-| **Model** | `gemini-3-flash-preview` |
+| **Sampling rate** | 0.01 (1% of matched sessions) |
+| **Model** | `gemini-3.5-flash-lite` (2 credits per observation) |
 | **Status** | Enabled |
 | **Est. monthly credits** | 0 (no traffic yet; rises with usage) |
 
@@ -31,8 +31,8 @@ Session recording is **live**. The project had `session_replay` already enabled 
 | **ID** | `01a07578-6e50-7cfb-baa0-5d45e4a8341f` |
 | **Type** | Monitor |
 | **Trigger** | Any session where `$current_url` contains `/courses` |
-| **Sampling rate** | 0.5 (every other matched session) |
-| **Model** | `gemini-3-flash-preview` |
+| **Sampling rate** | 0.01 (1% of matched sessions) |
+| **Model** | `gemini-3.5-flash-lite` (2 credits per observation) |
 | **Status** | Enabled |
 | **Est. monthly credits** | 0 (no traffic yet; rises with usage) |
 
@@ -47,7 +47,7 @@ Session recording is **live**. The project had `session_replay` already enabled 
 | **Type** | Summarizer |
 | **Scope** | All sessions (unscoped) |
 | **Sampling rate** | 0.1 (1 in 10 sessions) |
-| **Model** | `gemini-3-flash-preview` |
+| **Model** | `gemini-3.5-flash-lite` (2 credits per observation) |
 | **Status** | Enabled |
 | **Est. monthly credits** | 0 (no recordings yet; rises with usage) |
 
@@ -55,25 +55,45 @@ Session recording is **live**. The project had `session_replay` already enabled 
 
 ---
 
+### 4. Frustration score
+| Field | Value |
+|---|---|
+| **ID** | `01a0757b-3b25-71f7-8ced-2c26b5a04b70` |
+| **Type** | Scorer, 0-10 frustration scale |
+| **Trigger** | All sessions (unscoped) |
+| **Sampling rate** | 0.2, `balanced` coverage |
+| **Model** | `gemini-3.5-flash-lite` (2 credits per observation) |
+| **Status** | Enabled |
+
+**Scores:** how frustrated the learner appeared, 0 for a smooth session to 10 for sustained
+frustration. Created from PostHog's template after the two monitors, so it is absent from the
+sections above. It composes with the monitors rather than competing: a score is a dimension to
+chart and filter on, not a second flag on the same defect.
+
+---
+
 ## Cost plan — switch to Flash Lite
 
-Decision (2026-09-06): move all three scanners to **Gemini 3.5 Flash Lite** (2 credits per
-observation) from `gemini-3-flash-preview` (5). The tables above are as-built and stay
-accurate until the switch is applied in PostHog.
+Applied 2026-09-06 through the PostHog MCP. All four scanners moved to **Gemini 3.5 Flash
+Lite** (2 credits per observation) from `gemini-3-flash-preview` (5), and both monitors
+dropped to 1% sampling. Every scanner is at `scanner_version: 2` with
+`credits_per_observation: 2`; the tables above reflect the applied state.
 
 | Scanner | Model | Sampling |
 | --- | --- | --- |
-| Course learning frustration | `gemini-3-flash-preview` → **Flash Lite** | 1.0 → **0.01** |
-| Course page breakage | `gemini-3-flash-preview` → **Flash Lite** | 0.5 → **0.01** |
-| Vertex learner session summaries | `gemini-3-flash-preview` → **Flash Lite** | 0.1 unchanged |
+| Course learning frustration | Flash Lite ✅ | 1.0 → 0.01 ✅ |
+| Course page breakage | Flash Lite ✅ | 0.5 → 0.01 ✅ |
+| Vertex learner session summaries | Flash Lite ✅ | 0.1 unchanged |
+| Frustration score | Flash Lite ✅ | 0.2 unchanged |
 
 Model plus sampling together take the monitors from ~2.5× the planned per-observation cost
 at 50-100% coverage down to the 1% Flash Lite plan in `prompts/posthog-session-replay.md`.
 The summarizer keeps 10% coverage: it is meant to sample the population, not flag defects,
 and Flash Lite alone more than halves its burn.
 
-Apply in PostHog → Replay Vision → each scanner → Edit → **Model** and **Sampling rate**,
-then re-check the estimated monthly credits the editor projects before saving.
+The scorer keeps 0.2 and the summarizer 0.1: both sample the population rather than flag
+defects, and Flash Lite alone more than halves their burn. Budget after the change: 2,500
+credits remaining of a 2,500 free monthly allowance, 0 used, period ending 2026-10-05.
 
 ## Overlap fix — prompt-level ownership
 
@@ -89,8 +109,9 @@ belongs in the prompts. Triggers stay as they are — breakage answers "did the 
 the course surfaces, frustration answers "did the learner struggle where the app worked as
 built?" anywhere.
 
-Replace each scanner's prompt with the text below. The closing line in each is what stops the
-double flag; keep it.
+Both prompts below are **live** as of 2026-09-06 (`scanner_version: 2`). The two duplicated
+symptoms — an unresponsive Continue Learning button and a silently failing sign-in form —
+now belong to breakage alone, and each prompt closes by deferring the other case by name.
 
 **Course page breakage**
 

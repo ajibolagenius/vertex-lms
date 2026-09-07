@@ -49,13 +49,6 @@ const outcomeIcons: Record<string, LucideIcon> = {
 /** Modules beyond this many hide behind the "Show all" pill, as in the reference. */
 const COLLAPSE_AFTER = 6;
 
-/**
- * The `/lessons/[slug]` route does not exist yet, so lesson links would 404.
- * Until it lands, lesson rows render inert and the "Continue Learning" calls to
- * action are omitted. Flip this to `true` when the lesson page ships.
- */
-const LESSON_ROUTE_READY: boolean = false;
-
 const panel = "rounded-lg border border-line bg-surface";
 const lessonRow = "flex items-center gap-4 rounded-md py-3 text-[14px] leading-[20px]";
 
@@ -88,8 +81,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
   const moduleCount = course.moduleCount ?? modules.length;
   const firstLesson = modules.flatMap((m) => m.lessons ?? [])[0];
   /* Progress is not implemented yet (AGENTS §7), so the CTA resumes at the first lesson. */
-  const resumeHref =
-    LESSON_ROUTE_READY && firstLesson?.slug ? `/lessons/${firstLesson.slug}` : null;
+  const resumeHref = firstLesson?.slug ? `/lessons/${firstLesson.slug}` : null;
   const duration = formatDuration(course.duration);
 
   return (
@@ -346,7 +338,7 @@ function ModuleRow({
           );
           return (
             <li key={lesson._id}>
-              {LESSON_ROUTE_READY ? (
+              {lesson.slug ? (
                 <Link
                   href={`/lessons/${lesson.slug}`}
                   className={`${lessonRow} hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500`}
@@ -354,7 +346,7 @@ function ModuleRow({
                   {row}
                 </Link>
               ) : (
-                <div className={lessonRow}>{row}</div>
+                <span className={lessonRow}>{row}</span>
               )}
             </li>
           );
