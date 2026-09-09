@@ -214,3 +214,29 @@ export const SEARCH_LESSONS_QUERY = defineQuery(/* groq */ `
     }
   }
 `)
+
+/**
+ * Every progress record for one learner (AGENTS §8). Keyed off the Clerk user id, which the
+ * route and the page read from `auth()` — never from a query param.
+ *
+ * The parent course arrives by reverse reference, with the module tree flattened to lesson ids
+ * because that count is the denominator of the course's percentage. Grouping and the resume
+ * pick happen in `lib/progress.ts` rather than in GROQ, so they are testable.
+ */
+export const PROGRESS_BY_USER_QUERY = defineQuery(/* groq */ `
+  *[_type == "progress" && userId == $userId] | order(updatedAt desc) {
+    completed,
+    positionSeconds,
+    updatedAt,
+    "lessonId": lesson._ref,
+    lesson->{
+      title,
+      "slug": slug.current
+    },
+    "course": *[_type == "course" && references(^.lesson._ref)][0]{
+      title,
+      "slug": slug.current,
+      "lessonIds": modules[].lessons[]._ref
+    }
+  }
+`)
