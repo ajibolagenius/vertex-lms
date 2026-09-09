@@ -11,8 +11,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    // `lib/search/rank.ts` uses explicit .ts specifiers so `rank.check.mjs` can run it
-    // under plain node, the same way `lib/video.check.mjs` already does.
+    // Source self-checks run through tsx; this keeps explicit .ts imports typecheckable.
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "incremental": true,

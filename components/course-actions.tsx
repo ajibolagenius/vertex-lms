@@ -81,15 +81,3 @@ export function LessonViewTracker({
 }
 
 /** The icon-only bookmark control in the lesson header. Presentational (AGENTS §7). */
-export function BookmarkIconButton({ label, lessonSlug }: { label: string; lessonSlug: string }) {
-  return (
-    <button
-      type="button"
-      aria-label={`Bookmark ${label}`}
-      className="flex size-11 shrink-0 items-center justify-center rounded-md border border-line bg-surface text-primary-500 hover:bg-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-      onClick={() => posthog.capture("lesson_bookmarked", { lesson_slug: lessonSlug })}
-    >
-      <Bookmark size={18} aria-hidden="true" />
-    </button>
-  );
-}

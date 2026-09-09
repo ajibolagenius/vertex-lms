@@ -43,11 +43,8 @@ export async function POST(request: Request) {
   let mcpClient: MCPClient | null = null;
 
   try {
-    const [client, initialContext] = await Promise.all([
-      createSearchMcpClient(),
-      fetchInitialContext(),
-    ]);
-    mcpClient = client;
+    mcpClient = await createSearchMcpClient();
+    const initialContext = await fetchInitialContext();
 
     const tools = await mcpClient.tools();
     // The initial context is already in the system prompt, so keep the tool that would

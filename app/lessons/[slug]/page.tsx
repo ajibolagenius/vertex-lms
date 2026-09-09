@@ -13,7 +13,7 @@ import {
   SquareArrowOutUpRight,
   Users,
 } from "lucide-react";
-import { BookmarkIconButton, LessonViewTracker } from "@/components/course-actions";
+import { LessonViewTracker } from "@/components/course-actions";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
 import { LessonTabs } from "@/components/lesson/lesson-tabs";
 import { LessonVideo } from "@/components/lesson/video-player";
@@ -217,7 +217,6 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
                   {lesson.title}
                 </h1>
               </div>
-              <BookmarkIconButton label={lesson.title ?? "this lesson"} lessonSlug={slug} />
             </div>
 
             <p className="mt-5 max-w-[460px] text-[17px] leading-[26px] text-neutral-500">
