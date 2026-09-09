@@ -112,7 +112,14 @@ async function respond(
   getPostHogClient()?.capture({
     distinctId: (await auth()).userId ?? "anonymous",
     event: "search_performed",
-    properties: { query, sort, source, result_count: count, course_count: courseCount },
+    properties: {
+      query,
+      sort,
+      source,
+      result_count: count,
+      course_count: courseCount,
+      has_results: count > 0,
+    },
   });
 
   const body: SearchResponse = { query, sort, source, count, courseCount, reply, results };

@@ -15,6 +15,7 @@ import { MAX_QUERY_LENGTH } from "@/lib/search/types";
  */
 export function SearchForm({
   id,
+  source,
   defaultValue = "",
   variant = "md",
   label = "Search",
@@ -22,6 +23,8 @@ export function SearchForm({
   className,
 }: {
   id: string;
+  /** Which surface the search started from, for the `search_initiated` event. */
+  source: "home" | "results";
   defaultValue?: string;
   variant?: SearchInputVariant;
   label?: string;
@@ -50,7 +53,11 @@ export function SearchForm({
         // Capped here too, so the route's 400 is a backstop and not the UX.
         const query = (input.current?.value ?? "").trim().slice(0, MAX_QUERY_LENGTH);
         if (!query) return;
-        posthog.capture("search_initiated", { query });
+        posthog.capture("search_initiated", {
+          query,
+          query_length: query.length,
+          source,
+        });
         router.push(`/search?q=${encodeURIComponent(query)}`);
       }}
     >

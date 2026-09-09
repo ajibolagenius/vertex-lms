@@ -24,15 +24,17 @@ export const dynamic = "force-dynamic";
  */
 const SANITY_ID = /^[A-Za-z0-9._-]{1,128}$/;
 
-const ProgressWriteSchema = z
-  .object({
-    lessonId: z.string().regex(SANITY_ID),
-    completed: z.boolean().optional(),
-    positionSeconds: z.number().int().min(0).max(86_400).optional(),
-  })
-  .refine((body) => body.completed !== undefined || body.positionSeconds !== undefined, {
-    message: "Send completed, positionSeconds, or both.",
-  });
+/**
+ * `lessonId` alone is a valid write: the "learner opened this lesson" touch, which creates
+ * the record and bumps `updatedAt` so the course shows on `/my-learning`. It sets no other
+ * field, so it can never clear a `completed` flag or a resume position — those arrive from
+ * the complete button and from real playback respectively.
+ */
+const ProgressWriteSchema = z.object({
+  lessonId: z.string().regex(SANITY_ID),
+  completed: z.boolean().optional(),
+  positionSeconds: z.number().int().min(0).max(86_400).optional(),
+});
 
 export async function GET() {
   const { userId } = await auth();

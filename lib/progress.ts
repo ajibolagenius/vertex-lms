@@ -26,7 +26,7 @@ export type CourseProgress = {
   totalCount: number;
   percent: number;
   /** Most recently touched lesson that is not complete, if any. */
-  resume: {title: string; href: string} | null;
+  resume: {title: string; slug: string; href: string; positionSeconds: number} | null;
   updatedAt: string;
 };
 
@@ -66,7 +66,9 @@ export function groupByCourse(records: ProgressRecord[]): CourseProgress[] {
       resume: next
         ? {
             title: next.lesson?.title ?? "Continue",
+            slug: next.lesson?.slug as string,
             href: `/lessons/${next.lesson?.slug}${seconds > 0 ? `?t=${seconds}` : ""}`,
+            positionSeconds: seconds,
           }
         : null,
       updatedAt: entries[0]?.updatedAt ?? "",

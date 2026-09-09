@@ -254,7 +254,9 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
                 <LessonVideo
                   videoId={youtubeId(lesson.videoUrl)}
                   title={lesson.title ?? "Lesson video"}
+                  lessonId={lesson._id}
                   lessonSlug={slug}
+                  courseSlug={course?.slug ?? undefined}
                   poster={
                     lesson.thumbnail?.asset
                       ? urlFor(lesson.thumbnail).width(1216).height(684).fit("crop").url()
@@ -348,7 +350,12 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
           aria-label="Lesson navigation"
           className="flex flex-wrap items-center gap-4 border-t border-line px-6 py-[18px] sm:px-8"
         >
-          <MarkCompleteButton lessonId={lesson._id} lessonSlug={slug} />
+          <MarkCompleteButton
+            lessonId={lesson._id}
+            lessonSlug={slug}
+            courseSlug={course?.slug ?? undefined}
+            moduleIndex={moduleIndex}
+          />
 
           {previous?.slug && (
             <>

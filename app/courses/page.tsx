@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ViewTracker } from "@/components/analytics/view-tracker";
 import { SiteHeader } from "@/components/nav/site-header";
 import { CourseGrid } from "@/components/cards/course-grid";
 import { ChartDecoration } from "@/components/decor/chart-decoration";
@@ -18,6 +19,7 @@ export default async function CoursesPage() {
     <div className="flex-1 bg-hatch px-0 sm:px-8">
       <div className="mx-auto w-full max-w-[1440px] border-x border-line bg-paper">
         <SiteHeader />
+        <ViewTracker event="catalog_viewed" properties={{ course_count: courses.length }} />
 
         <main className="px-6 pt-14 sm:px-12">
           <div className="flex flex-wrap items-baseline justify-between gap-4">

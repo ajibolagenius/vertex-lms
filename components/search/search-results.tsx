@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Search } from "lucide-react";
+import posthog from "posthog-js";
 import { ResultCard } from "@/components/search/result-card";
 import { SearchForm } from "@/components/search/search-form";
 import { Select } from "@/components/ui/select";
@@ -91,6 +92,7 @@ export function SearchResults() {
 
       <SearchForm
         id="search-results-query"
+        source="results"
         variant="page"
         defaultValue={query}
         // Remounts on a new query so the field shows what the URL says after navigation.
@@ -114,6 +116,7 @@ export function SearchResults() {
               const next =
                 SORTS.find((option) => SORT_LABELS[option] === event.target.value) ??
                 "relevance";
+              posthog.capture("search_sort_changed", { query, sort: next });
               const nextParams = new URLSearchParams({ q: query });
               if (next !== "relevance") nextParams.set("sort", next);
               // `replace`, so sorting does not stack up history entries.
@@ -142,7 +145,11 @@ export function SearchResults() {
         )}
 
         {done?.results.map((result) => (
-          <ResultCard key={`${result.lessonId}-${result.rank}`} result={result} />
+          <ResultCard
+            key={`${result.lessonId}-${result.rank}`}
+            result={result}
+            query={query}
+          />
         ))}
       </div>
 
