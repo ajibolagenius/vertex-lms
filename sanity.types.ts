@@ -556,6 +556,29 @@ export type COURSE_SLUGS_QUERY_RESULT = Array<string | null>;
 // Query: *[_type == "lesson" && defined(slug.current)].slug.current
 export type LESSON_SLUGS_QUERY_RESULT = Array<string | null>;
 
+// Source: ../sanity/lib/queries.ts
+// Variable: LESSONS_BY_IDS_QUERY
+// Query: *[_type == "lesson" && _id in $ids] {    _id,    _createdAt,    title,    "slug": slug.current,    duration,    videoUrl,    keyPoints,    "thumbnailRef": thumbnail.asset._ref,    "course": *[_type == "course" && references(^._id)][0]{      title,      "slug": slug.current,      "iconRef": coverImage.asset._ref,      modules[]{        title,        "lessonIds": lessons[]._ref      }    }  }
+export type LESSONS_BY_IDS_QUERY_RESULT = Array<{
+  _id: string;
+  _createdAt: string;
+  title: string | null;
+  slug: string | null;
+  duration: number | null;
+  videoUrl: string | null;
+  keyPoints: Array<string> | null;
+  thumbnailRef: string | null;
+  course: {
+    title: string | null;
+    slug: string | null;
+    iconRef: string | null;
+    modules: Array<{
+      title: string | null;
+      lessonIds: Array<string> | null;
+    }> | null;
+  } | null;
+}>;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
@@ -566,5 +589,6 @@ declare module "@sanity/client" {
     '\n  *[_type == "instructor" && slug.current == $slug][0] {\n    _id,\n    name,\n    "slug": slug.current,\n    photo,\n    expertise,\n    bio,\n    "courses": *[_type == "course" && instructor._ref == ^._id] | order(popular desc, title asc) {\n      \n  _id,\n  title,\n  "slug": slug.current,\n  summary,\n  coverImage,\n  level,\n  popular,\n  studentCount,\n  category->{title, "slug": slug.current},\n  "moduleCount": count(modules),\n  "lessonCount": count(modules[].lessons[]),\n  "duration": math::sum(modules[].lessons[]->duration)\n\n    }\n  }\n': INSTRUCTOR_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "course" && defined(slug.current)].slug.current\n': COURSE_SLUGS_QUERY_RESULT;
     '\n  *[_type == "lesson" && defined(slug.current)].slug.current\n': LESSON_SLUGS_QUERY_RESULT;
+    '\n  *[_type == "lesson" && _id in $ids] {\n    _id,\n    _createdAt,\n    title,\n    "slug": slug.current,\n    duration,\n    videoUrl,\n    keyPoints,\n    "thumbnailRef": thumbnail.asset._ref,\n    "course": *[_type == "course" && references(^._id)][0]{\n      title,\n      "slug": slug.current,\n      "iconRef": coverImage.asset._ref,\n      modules[]{\n        title,\n        "lessonIds": lessons[]._ref\n      }\n    }\n  }\n': LESSONS_BY_IDS_QUERY_RESULT;
   }
 }

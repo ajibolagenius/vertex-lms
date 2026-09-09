@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
-import { SearchInput } from "@/components/ui/search-input";
+import { SearchForm } from "@/components/search/search-form";
 import posthog from "posthog-js";
 
 export function HomeCta() {
@@ -16,14 +16,14 @@ export function HomeCta() {
         </ButtonLink>
       </span>
 
-      <SearchInput
+      {/* Live now: submitting navigates to /search, where the results page reads the
+          query from the URL. `SearchForm` captures `search_initiated` itself. */}
+      <SearchForm
         id="home-search"
         variant="hero"
         label="Ask anything about your learning"
         placeholder="Ask anything about your learning..."
-        readOnly
         className="mx-auto mt-10 max-w-[748px] text-left"
-        onClick={() => posthog.capture("search_initiated")}
       />
     </>
   );
