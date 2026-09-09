@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SearchInputVariant = "md" | "hero";
+export type SearchInputVariant = "md" | "page" | "hero";
 
 const variants: Record<
   SearchInputVariant,
@@ -13,6 +13,14 @@ const variants: Record<
     icon: 18,
     iconPos: "left-4",
     shortcut: "right-4 text-[12px] leading-[16px] text-neutral-500",
+  },
+  /* The search results page: 48px tall, and the ⌘K hint is a boxed key chip. */
+  page: {
+    field: "h-12 rounded-md pl-12 pr-[72px] text-[15px]",
+    icon: 20,
+    iconPos: "left-4",
+    shortcut:
+      "right-3 flex h-7 items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 text-[12px] leading-[16px] text-neutral-500",
   },
   /* The home hero: 86px tall, with the ⌘K hint drawn as a boxed key chip. */
   hero: {

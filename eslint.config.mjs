@@ -12,6 +12,16 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Listing globalIgnores drops eslint's own default `node_modules` ignore, which
+    // sent `eslint` into studio/node_modules (~28k files) and out of heap.
+    "**/node_modules/**",
+    // Not the web workspace: the Studio is its own workspace with its own tooling,
+    // and these are vendored skills and reference material, not source. Mirrors the
+    // `exclude` list in tsconfig.json.
+    "studio/**",
+    ".agents/**",
+    "agent/**",
+    "LMS_Vertex/**",
   ]),
 ]);
 

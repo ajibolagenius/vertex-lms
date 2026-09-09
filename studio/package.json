@@ -7,7 +7,8 @@
     "dev": "sanity dev",
     "build": "sanity build",
     "deploy": "sanity deploy",
-    "typegen": "sanity schema extract && sanity typegen generate"
+    "typegen": "sanity schema extract && sanity typegen generate",
+    "context:import": "sanity dataset import scripts/context/vertex-search.ndjson production --replace"
   },
   "dependencies": {
     "@sanity/icons": "^3.7.4",

@@ -133,3 +133,33 @@ export const COURSE_SLUGS_QUERY = defineQuery(/* groq */ `
 export const LESSON_SLUGS_QUERY = defineQuery(/* groq */ `
   *[_type == "lesson" && defined(slug.current)].slug.current
 `)
+
+/**
+ * The search grounding read (AGENTS §7): the model returns lesson ids, and every field
+ * the results page renders comes from here instead of from the model.
+ *
+ * The parent course arrives by reverse reference, with its module tree flattened to
+ * lesson ids only — that is all `lib/search/ground.ts` needs to derive the module title
+ * and the positional "5.1" label.
+ */
+export const LESSONS_BY_IDS_QUERY = defineQuery(/* groq */ `
+  *[_type == "lesson" && _id in $ids] {
+    _id,
+    _createdAt,
+    title,
+    "slug": slug.current,
+    duration,
+    videoUrl,
+    keyPoints,
+    "thumbnailRef": thumbnail.asset._ref,
+    "course": *[_type == "course" && references(^._id)][0]{
+      title,
+      "slug": slug.current,
+      "iconRef": coverImage.asset._ref,
+      modules[]{
+        title,
+        "lessonIds": lessons[]._ref
+      }
+    }
+  }
+`)

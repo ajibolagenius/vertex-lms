@@ -25,3 +25,19 @@ export function formatLevel(level: string): string {
 export function pluralize(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
+
+/**
+ * `765` → `"12:45"`, `512` → `"08:32"`, `4210` → `"1:10:10"`. For a clip length or a
+ * matched moment. Minutes are zero-padded, as the search reference draws them.
+ */
+export function formatTimestamp(seconds: number | null | undefined): string {
+  const total = Math.max(0, Math.floor(seconds ?? 0));
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const mmss = `${pad(Math.floor(total / 60) % 60)}:${pad(total % 60)}`;
+  return total < 3600 ? mmss : `${Math.floor(total / 3600)}:${mmss}`;
+}
+
+/** `(4, 0)` → `"5.1"`. Positional, from array order — never stored (AGENTS §8). */
+export function lessonLabel(moduleIndex: number, lessonIndex: number): string {
+  return `${moduleIndex + 1}.${lessonIndex + 1}`;
+}
