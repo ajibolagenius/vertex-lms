@@ -50,7 +50,7 @@ Run:
 ```sh
 npm install
 npx tsc --noEmit
-npx eslint app/api/search/route.ts lib/search/mcp.ts components/course-actions.tsx app/lessons/[slug]/page.tsx
+npx eslint app/api/search/route.ts lib/search/mcp.ts components/course-actions.tsx 'app/lessons/[slug]/page.tsx'
 npm run check:rank
 npm run check:video
 ```

@@ -12,7 +12,8 @@
     "lint": "eslint",
     "typegen": "npm --prefix studio run typegen",
     "check:rank": "tsx lib/search/rank.check.mjs",
-    "check:video": "tsx lib/video.check.mjs"
+    "check:video": "tsx lib/video.check.mjs",
+    "check:ingest": "node studio/scripts/videos/parse.check.mjs"
   },
   "dependencies": {
     "@ai-sdk/mcp": "^2.0.45",

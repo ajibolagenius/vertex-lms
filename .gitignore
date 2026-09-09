@@ -46,6 +46,8 @@ next-env.d.ts
 /studio/dist
 /studio/schema.json
 /studio/.sanity
+# yt-dlp output for the video ingestion pipeline — regenerated, never committed
+/studio/scripts/videos/.cache
 
 # misc
 LMS_Vertex

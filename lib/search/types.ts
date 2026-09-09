@@ -79,9 +79,9 @@ export const SearchResultSchema = z.discriminatedUnion("kind", [
   SearchResultBaseSchema.extend({
     kind: z.literal("video"),
     /**
-     * The matched second. `null` until video documents with chapters/chunks exist —
-     * the card then reads "Watch lesson" instead of "Watch from 12:45" rather than
-     * inventing a timestamp (§7).
+     * The matched second, from a real chapter or transcript chunk. `null` when nothing
+     * matched a moment — the card then reads "Watch lesson" instead of "Watch from
+     * 12:45" rather than inventing a timestamp (§7).
      */
     startSeconds: z.number().nullable(),
   }),
