@@ -40,6 +40,15 @@ plain-language query into a ranked list of real lessons from this dataset.
   *[_type == "course" && references(^._id)][0].
 - Video documents are an internal lookup, never a result on their own. Tie a matched
   moment back to the lesson whose "videoUrl" equals the video's "url".
+- The moment query, chapters and transcript in one pass, verified against this dataset:
+  *[_type == "video" && count($terms[^.chapters[].label match @ || ^.chunks[].text match @]) > 0]{
+    "lessonId": *[_type == "lesson" && videoUrl == ^.url][0]._id,
+    "chapterMoments": chapters[count($terms[^.label match @]) > 0][0...3]{startSeconds, label},
+    "transcriptMoments": chunks[count($terms[^.text match @]) > 0][0...3]{startSeconds, text}
+  }
+  Inside that nested filter "@" is the TERM and "^" is the chapter or chunk, so it reads
+  "^.label match @". Prefer a chapter second; fall back to a transcript second only when no
+  chapter matched. Most videos carry no chapters, so that fallback is the normal path.
 
 # Ranking
 

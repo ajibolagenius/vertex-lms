@@ -7,12 +7,13 @@ import {
   ArrowRight,
   ChartNoAxesColumn,
   Clock,
+  CircleCheck,
   FileText,
   Lightbulb,
   SquareArrowOutUpRight,
   Users,
 } from "lucide-react";
-import { BookmarkIconButton, LessonViewTracker } from "@/components/course-actions";
+import { LessonViewTracker } from "@/components/course-actions";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
 import { LessonTabs } from "@/components/lesson/lesson-tabs";
 import { LessonVideo } from "@/components/lesson/video-player";
@@ -154,6 +155,12 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
   const next = position >= 0 ? flat[position + 1]?.item : undefined;
 
   const { lede, body } = splitNotes(lesson.notes);
+  const overviewBlocks = body.filter(
+    (block: NotesBlock) => block._type === "block" && block.style === "normal" && !block.listItem,
+  );
+  const keyPoints = (lesson.keyPoints ?? []).filter(
+    (keyPoint): keyPoint is string => Boolean(keyPoint),
+  );
   // A resource with no url has nothing to open, so it never becomes a card — this
   // also keeps the Resources heading hidden when none of them are linkable.
   const resources = (lesson.resources ?? []).filter(
@@ -210,7 +217,6 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
                   {lesson.title}
                 </h1>
               </div>
-              <BookmarkIconButton label={lesson.title ?? "this lesson"} />
             </div>
 
             <p className="mt-5 max-w-[460px] text-[17px] leading-[26px] text-neutral-500">
@@ -259,9 +265,35 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
               <LessonTabs
                 content={
                   <div className="pt-8">
-                    {body.length > 0 && (
+                    {overviewBlocks.length > 0 && (
                       <section>
-                        <PortableText value={body} components={notesComponents} />
+                        <h2 className="font-display text-[20px] leading-[28px] font-bold text-black">
+                          Overview
+                        </h2>
+                        <PortableText value={overviewBlocks} components={notesComponents} />
+                      </section>
+                    )}
+
+                    {keyPoints.length > 0 && (
+                      <section className="mt-8 border-t border-line pt-6">
+                        <h3 className="text-[15px] leading-[22px] font-semibold text-neutral-900">
+                          In this lesson you will:
+                        </h3>
+                        <ul className="mt-4 space-y-3">
+                          {keyPoints.map((keyPoint) => (
+                            <li
+                              key={keyPoint}
+                              className="flex items-start gap-3 text-[15px] leading-[23px] text-neutral-500"
+                            >
+                              <CircleCheck
+                                size={20}
+                                aria-hidden="true"
+                                className="mt-0.5 shrink-0 text-primary-500"
+                              />
+                              <span>{keyPoint}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </section>
                     )}
 

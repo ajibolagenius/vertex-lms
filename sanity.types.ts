@@ -75,6 +75,28 @@ export type Module = {
   >;
 };
 
+export type Video = {
+  _id: string;
+  _type: "video";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  id?: string;
+  url?: string;
+  chapters?: Array<{
+    startSeconds?: number;
+    label?: string;
+    _type: "videoChapter";
+    _key: string;
+  }>;
+  chunks?: Array<{
+    startSeconds?: number;
+    text?: string;
+    _type: "videoChunk";
+    _key: string;
+  }>;
+};
+
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -317,6 +339,7 @@ export type AllSanitySchemaTypes =
   | LearningOutcome
   | LessonReference
   | Module
+  | Video
   | SanityImageAssetReference
   | Lesson
   | SanityImageCrop

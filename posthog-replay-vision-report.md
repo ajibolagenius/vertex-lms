@@ -21,7 +21,7 @@ Session recording is **live**. The project had `session_replay` already enabled 
 | **Status** | Enabled |
 | **Est. monthly credits** | 0 (no traffic yet; rises with usage) |
 
-**Watches for:** Clicking lesson rows that look interactive but lead nowhere (lesson route not ready), repeatedly tapping a disabled Continue Learning button, hammering the bookmark button with no visible feedback, toggling "Show all modules" without expansion, and retrying sign-in/sign-up after silent form failures.
+**Watches for:** Repeated clicks on the hero search input (read-only today), repeated clicks on the presentational notifications bell, hammering the bookmark button with no visible feedback, toggling "Show all modules" without expansion, and back-and-forth navigation between a course page and the catalog without ever starting a lesson. An unresponsive Continue Learning control and a silently failing sign-in form belong to "Course page breakage" instead, and dead lesson rows are no longer listed at all now that `/lessons/[slug]` ships.
 
 ---
 
@@ -76,8 +76,10 @@ chart and filter on, not a second flag on the same defect.
 
 Applied 2026-09-06 through the PostHog MCP. All four scanners moved to **Gemini 3.5 Flash
 Lite** (2 credits per observation) from `gemini-3-flash-preview` (5), and both monitors
-dropped to 1% sampling. Every scanner is at `scanner_version: 2` with
-`credits_per_observation: 2`; the tables above reflect the applied state.
+dropped to 1% sampling. Every scanner is at `credits_per_observation: 2`; the tables above
+reflect the applied state. Version metadata as of 2026-09-07: the frustration monitor is at
+`scanner_version: 3` after the lesson-route correction below, the other three are at 2. Model
+and sampling are untouched by that edit, so the cost table still holds.
 
 | Scanner | Model | Sampling |
 | --- | --- | --- |
@@ -97,10 +99,11 @@ credits remaining of a 2,500 free monthly allowance, 0 used, period ending 2026-
 
 ## Overlap fix — prompt-level ownership
 
-The two monitors both fire on a `/courses` session containing a rage click, and both prompts
-claim the same symptom ("Continue Learning button unresponsive" / "repeatedly tapping a
-disabled Continue Learning button"). That is double credit spend, and worse, two observations
-describing one defect look like independent corroboration to the inbox when they are not.
+The two monitors both fire on a `/courses` session containing a rage click, and before this
+fix both prompts claimed the same symptom ("Continue Learning button unresponsive" /
+"repeatedly tapping a disabled Continue Learning button"). That was double credit spend, and
+worse, two observations describing one defect look like independent corroboration to the inbox
+when they are not.
 
 Rejected: URL-scoping the frustration monitor to `/courses*` makes the overlap total rather
 than smaller; excluding `/courses` from it deletes the surface where the frustration actually
@@ -109,30 +112,45 @@ belongs in the prompts. Triggers stay as they are — breakage answers "did the 
 the course surfaces, frustration answers "did the learner struggle where the app worked as
 built?" anywhere.
 
-Both prompts below are **live** as of 2026-09-06 (`scanner_version: 2`). The two duplicated
-symptoms — an unresponsive Continue Learning button and a silently failing sign-in form —
-now belong to breakage alone, and each prompt closes by deferring the other case by name.
+Both prompts below are **live** and quoted verbatim from PostHog: breakage as configured on
+2026-09-06 (`scanner_version: 2`), frustration as corrected on 2026-09-07 (`scanner_version:
+3`). The two duplicated symptoms — an unresponsive Continue Learning button and a silently
+failing sign-in form — belong to breakage alone, and each prompt closes by deferring the other
+case by name. The 2026-09-07 edit also dropped the frustration prompt's claim that the lesson
+route does not exist: `/lessons/[slug]` ships, so a lesson row that goes nowhere is now a
+defect breakage owns, not unbuilt-feature friction.
 
 **Course page breakage**
 
-> Watch for the app failing the learner. Flag: a catalog or course page that renders with no
-> course cards where content is expected; a cover or instructor image that fails to load; a
-> course page missing its modules; a visible error boundary or error message; a link that
-> leads to a broken or blank page; a form that submits and silently fails.
+> Watch this session for moments where the product visibly broke for the user: an error
+> message or toast, a blank or white screen, content that failed to load, obviously broken
+> layout, a spinner that never resolves, or a button, form or action that clearly failed. In
+> this product that especially means: course detail content not rendering or showing a blank
+> page, course cover images or instructor photos failing to load, the module list not
+> expanding or collapsing unexpectedly, the Continue Learning or Start Course button being
+> unresponsive, sign-in or sign-up forms submitting silently with no error or confirmation, or
+> a course card link leading to a broken or empty page. Only flag issues that are unambiguous
+> on screen and would actually matter to the user - ignore cosmetic nits and anything you are
+> unsure about. For each: what the user was trying to do, what broke, and the URL.
+>
 > Do not flag slow loading that resolves, a deliberate empty state, or a control that does
-> nothing because the feature is not built yet — the "Course learning frustration" scanner
+> nothing because the feature is not built yet - the "Course learning frustration" scanner
 > owns that.
 
 **Course learning frustration**
 
-> Watch for the learner struggling against the product as built, not against a defect. Flag:
-> repeated clicks on the hero search input, which is read-only today; repeated clicks on the
-> notifications bell, which is presentational; clicking lesson rows that look interactive but
-> lead nowhere because the lesson route does not exist yet; clicking Bookmark repeatedly with
-> no visible feedback; back-and-forth navigation between a course page and the catalog without
-> ever starting a lesson.
-> Do not flag a page that rendered wrong, errored, or failed to load — the "Course page
-> breakage" scanner owns that.
+> Watch this session for the learner struggling against the product as built, not against a
+> defect. Flag: repeated clicks on the hero search input, which is read-only today; repeated
+> clicks on the notifications bell, which is presentational; clicking Bookmark repeatedly with
+> no visible feedback; toggling the Show all modules control expecting an expansion that is not
+> built; back-and-forth navigation between a course page and the catalog without ever starting
+> a lesson. Only flag genuine struggle you can see, not normal browsing or a single mis-click.
+> For each: what they were trying to do, where they got stuck, and the URL.
+>
+> Do not flag a page that rendered wrong, errored, failed to load, or a button or form that is
+> broken rather than unbuilt - the "Course page breakage" scanner owns that. Lesson pages are
+> built and play video on the site, so a lesson row or link that goes nowhere is a defect for
+> that scanner, not unbuilt-feature friction.
 
 ## Skipped / Deferred
 

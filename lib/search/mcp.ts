@@ -51,17 +51,28 @@ export async function fetchInitialContext(): Promise<string | null> {
     return cachedInitialContext;
   }
 
-  const response = await fetch(initialContextUrl(requireEnv("SANITY_CONTEXT_MCP_URL")), {
-    headers: { Authorization: `Bearer ${requireEnv("SANITY_API_READ_TOKEN")}` },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
 
-  if (!response.ok) {
-    console.error(`Sanity Context initial-context failed: ${response.status}`);
-    // A stale cache still beats making the model rediscover the schema.
+  try {
+    const response = await fetch(initialContextUrl(requireEnv("SANITY_CONTEXT_MCP_URL")), {
+      headers: { Authorization: `Bearer ${requireEnv("SANITY_API_READ_TOKEN")}` },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      console.error(`Sanity Context initial-context failed: ${response.status}`);
+      // A stale cache still beats making the model rediscover the schema.
+      return cachedInitialContext;
+    }
+
+    cachedInitialContext = await response.text();
+    cachedAt = Date.now();
     return cachedInitialContext;
+  } catch (error) {
+    console.error("Sanity Context initial-context request failed:", error);
+    return cachedInitialContext;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  cachedInitialContext = await response.text();
-  cachedAt = Date.now();
-  return cachedInitialContext;
 }

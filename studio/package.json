@@ -8,7 +8,9 @@
     "build": "sanity build",
     "deploy": "sanity deploy",
     "typegen": "sanity schema extract && sanity typegen generate",
-    "context:import": "sanity dataset import scripts/context/vertex-search.ndjson production --replace"
+    "context:import": "sanity dataset import scripts/context/vertex-search.ndjson production --replace",
+    "videos:ingest": "node scripts/videos/ingest.mjs",
+    "videos:import": "sanity dataset import scripts/videos/videos.ndjson production --replace"
   },
   "dependencies": {
     "@sanity/icons": "^3.7.4",

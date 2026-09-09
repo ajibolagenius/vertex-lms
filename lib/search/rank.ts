@@ -40,8 +40,8 @@ export function orderHits(hits: ModelHit[]): ModelHit[] {
  *  1. A `video` card needs a lesson whose `videoUrl` is a real, playable provider URL;
  *     otherwise the hit is downgraded to a lesson card.
  *  2. `startSeconds` survives only when the model attributes it to a real chapter or
- *     transcript chunk. No video documents exist yet, so today it is always dropped and
- *     the card reads "Watch lesson" rather than inventing a moment (§7/§9).
+ *     transcript chunk. Without one the card reads "Watch lesson" rather than inventing a
+ *     moment (§7/§9).
  */
 export function toResult(hit: ModelHit, lesson: GroundableLesson): SearchResult | null {
   if (!lesson.slug) return null;
@@ -75,10 +75,9 @@ export function toResult(hit: ModelHit, lesson: GroundableLesson): SearchResult 
     href: `/lessons/${lesson.slug}${startSeconds ? `?t=${startSeconds}` : ""}`,
   };
 
-  // ponytail: `kind` is the model's judgement call, guarded by "is it playable?".
-  // Once video documents exist, a chapter/transcript match is the stronger signal and
-  // should decide this instead.
-  return hit.kind === "video" && youtubeId(lesson.videoUrl)
+  // A real chapter or transcript moment is the stronger signal, so it decides the card;
+  // with no moment, the model's own `kind` does. Either way it has to be playable.
+  return youtubeId(lesson.videoUrl) && (startSeconds !== null || hit.kind === "video")
     ? { ...base, kind: "video", startSeconds }
     : { ...base, kind: "lesson" };
 }
