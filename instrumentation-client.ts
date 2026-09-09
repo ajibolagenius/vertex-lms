@@ -11,7 +11,10 @@ if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) {
     api_host: "/ingest",
     ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     defaults: "2026-01-30",
-    capture_exceptions: true,
+    // Autocapture exceptions only in production. A developer's local errors,
+    // such as a Clerk network hiccup against a development instance, must not
+    // open issues in error tracking next to real user exceptions.
+    capture_exceptions: process.env.NODE_ENV === "production",
     // Rage clicks are on by default; dead clicks are not. Both feed the
     // Replay Vision user-frustration monitor.
     capture_dead_clicks: true,
