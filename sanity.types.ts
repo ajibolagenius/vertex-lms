@@ -581,7 +581,7 @@ export type LESSON_SLUGS_QUERY_RESULT = Array<string | null>;
 
 // Source: ../sanity/lib/queries.ts
 // Variable: LESSONS_BY_IDS_QUERY
-// Query: *[_type == "lesson" && _id in $ids] {    _id,    _createdAt,    title,    "slug": slug.current,    duration,    videoUrl,    keyPoints,    "thumbnailRef": thumbnail.asset._ref,    "course": *[_type == "course" && references(^._id)][0]{      title,      "slug": slug.current,      "iconRef": coverImage.asset._ref,      modules[]{        title,        "lessonIds": lessons[]._ref      }    }  }
+// Query: *[_type == "lesson" && _id in $ids] {      _id,  _createdAt,  title,  "slug": slug.current,  duration,  videoUrl,  keyPoints,  "thumbnailRef": thumbnail.asset._ref,  "course": *[_type == "course" && references(^._id)][0]{    title,    "slug": slug.current,    "iconRef": coverImage.asset._ref,    modules[]{      title,      "lessonIds": lessons[]._ref    }  }  }
 export type LESSONS_BY_IDS_QUERY_RESULT = Array<{
   _id: string;
   _createdAt: string;
@@ -602,6 +602,27 @@ export type LESSONS_BY_IDS_QUERY_RESULT = Array<{
   } | null;
 }>;
 
+// Source: ../sanity/lib/queries.ts
+// Variable: SEARCH_LESSONS_QUERY
+// Query: *[_type == "lesson" && defined(slug.current) && (    count($terms[^.title match @ || pt::text(^.notes) match @ || ^.keyPoints[] match @]) > 0 ||    count(*[_type == "video" && url == ^.videoUrl &&      count($terms[^.chapters[].label match @ || ^.chunks[].text match @]) > 0    ]) > 0  )] {    _id,    title,    "notesText": pt::text(notes),    "titleTerms": $terms[^.title match @],    "keyPointTerms": $terms[^.keyPoints[] match @],    "notesTerms": $terms[pt::text(^.notes) match @],    "video": *[_type == "video" && url == ^.videoUrl][0]{      "videoTerms": $terms[^.chapters[].label match @ || ^.chunks[].text match @],      "chapterMoments": chapters[count($terms[^.label match @]) > 0][0...3]{startSeconds},      "transcriptMoments": chunks[count($terms[^.text match @]) > 0][0...3]{startSeconds}    }  }
+export type SEARCH_LESSONS_QUERY_RESULT = Array<{
+  _id: string;
+  title: string | null;
+  notesText: string;
+  titleTerms: Array<unknown>;
+  keyPointTerms: Array<unknown>;
+  notesTerms: Array<unknown>;
+  video: {
+    videoTerms: Array<unknown>;
+    chapterMoments: Array<{
+      startSeconds: number | null;
+    }> | null;
+    transcriptMoments: Array<{
+      startSeconds: number | null;
+    }> | null;
+  } | null;
+}>;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
@@ -612,6 +633,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "instructor" && slug.current == $slug][0] {\n    _id,\n    name,\n    "slug": slug.current,\n    photo,\n    expertise,\n    bio,\n    "courses": *[_type == "course" && instructor._ref == ^._id] | order(popular desc, title asc) {\n      \n  _id,\n  title,\n  "slug": slug.current,\n  summary,\n  coverImage,\n  level,\n  popular,\n  studentCount,\n  category->{title, "slug": slug.current},\n  "moduleCount": count(modules),\n  "lessonCount": count(modules[].lessons[]),\n  "duration": math::sum(modules[].lessons[]->duration)\n\n    }\n  }\n': INSTRUCTOR_BY_SLUG_QUERY_RESULT;
     '\n  *[_type == "course" && defined(slug.current)].slug.current\n': COURSE_SLUGS_QUERY_RESULT;
     '\n  *[_type == "lesson" && defined(slug.current)].slug.current\n': LESSON_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "lesson" && _id in $ids] {\n    _id,\n    _createdAt,\n    title,\n    "slug": slug.current,\n    duration,\n    videoUrl,\n    keyPoints,\n    "thumbnailRef": thumbnail.asset._ref,\n    "course": *[_type == "course" && references(^._id)][0]{\n      title,\n      "slug": slug.current,\n      "iconRef": coverImage.asset._ref,\n      modules[]{\n        title,\n        "lessonIds": lessons[]._ref\n      }\n    }\n  }\n': LESSONS_BY_IDS_QUERY_RESULT;
+    '\n  *[_type == "lesson" && _id in $ids] {\n    \n  _id,\n  _createdAt,\n  title,\n  "slug": slug.current,\n  duration,\n  videoUrl,\n  keyPoints,\n  "thumbnailRef": thumbnail.asset._ref,\n  "course": *[_type == "course" && references(^._id)][0]{\n    title,\n    "slug": slug.current,\n    "iconRef": coverImage.asset._ref,\n    modules[]{\n      title,\n      "lessonIds": lessons[]._ref\n    }\n  }\n\n  }\n': LESSONS_BY_IDS_QUERY_RESULT;
+    '\n  *[_type == "lesson" && defined(slug.current) && (\n    count($terms[^.title match @ || pt::text(^.notes) match @ || ^.keyPoints[] match @]) > 0 ||\n    count(*[_type == "video" && url == ^.videoUrl &&\n      count($terms[^.chapters[].label match @ || ^.chunks[].text match @]) > 0\n    ]) > 0\n  )] {\n    _id,\n    title,\n    "notesText": pt::text(notes),\n    "titleTerms": $terms[^.title match @],\n    "keyPointTerms": $terms[^.keyPoints[] match @],\n    "notesTerms": $terms[pt::text(^.notes) match @],\n    "video": *[_type == "video" && url == ^.videoUrl][0]{\n      "videoTerms": $terms[^.chapters[].label match @ || ^.chunks[].text match @],\n      "chapterMoments": chapters[count($terms[^.label match @]) > 0][0...3]{startSeconds},\n      "transcriptMoments": chunks[count($terms[^.text match @]) > 0][0...3]{startSeconds}\n    }\n  }\n': SEARCH_LESSONS_QUERY_RESULT;
   }
 }

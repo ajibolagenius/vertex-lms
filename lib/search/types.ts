@@ -92,6 +92,12 @@ export type SearchResult = z.infer<typeof SearchResultSchema>;
 export const SearchResponseSchema = z.object({
   query: z.string(),
   sort: z.enum(SORTS),
+  /**
+   * Which path produced these results: the Context MCP plus the LLM, or the GROQ keyword
+   * fallback. Nothing renders it — it exists so the behaviour is observable in PostHog and
+   * assertable from the response.
+   */
+  source: z.enum(["agent", "keyword"]),
   count: z.number(),
   /** Distinct courses represented, for "Found 28 results across 8 courses". */
   courseCount: z.number(),

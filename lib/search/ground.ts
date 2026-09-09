@@ -1,10 +1,13 @@
 import "server-only";
 
 import { sanityFetch } from "@/sanity/lib/fetch";
-import { LESSONS_BY_IDS_QUERY } from "@/sanity/lib/queries";
+import { LESSONS_BY_IDS_QUERY, SEARCH_LESSONS_QUERY } from "@/sanity/lib/queries";
 
+import { toHits, tokenize, type KeywordRow } from "./keyword";
 import { orderHits, sortResults, toResult, type GroundableLesson } from "./rank";
 import type { ModelHit, SearchResult, Sort } from "./types";
+
+export type Grounded = { count: number; courseCount: number; results: SearchResult[] };
 
 /**
  * Grounding (AGENTS §7): the model says which lessons matched, and every field the
@@ -13,10 +16,7 @@ import type { ModelHit, SearchResult, Sort } from "./types";
  * instruction. The per-hit mapping and the ordering live in `rank.ts`, which has a
  * runnable check.
  */
-export async function groundHits(
-  hits: ModelHit[],
-  sort: Sort,
-): Promise<{ count: number; courseCount: number; results: SearchResult[] }> {
+export async function groundHits(hits: ModelHit[], sort: Sort): Promise<Grounded> {
   const ordered = orderHits(hits);
   const ids = [...new Set(ordered.map((hit) => hit.lessonId))];
   if (!ids.length) return { count: 0, courseCount: 0, results: [] };
@@ -56,4 +56,27 @@ export async function groundHits(
     courseCount: new Set(sorted.map((result) => result.courseSlug ?? result.courseTitle)).size,
     results: sorted,
   };
+}
+
+/**
+ * The keyword search the route falls back to when the model is unavailable (§11): one GROQ
+ * read, ranked by `keyword.ts`, then the *same* grounding as the agent path — so a card
+ * built from here is indistinguishable from one the model produced.
+ *
+ * Sanity does the matching, so nothing is invented: a lesson only appears because its own
+ * text or its video's chapters/transcript matched a term.
+ */
+export async function keywordSearch(query: string, sort: Sort): Promise<Grounded> {
+  const terms = tokenize(query);
+  if (!terms.length) return { count: 0, courseCount: 0, results: [] };
+
+  const rows = await sanityFetch({
+    query: SEARCH_LESSONS_QUERY,
+    params: { terms },
+    tags: ["lesson", "course", "video"],
+  });
+
+  // Two steps on purpose: this one is a broad match and stays cheap, then the winners go
+  // through the same grounding read the model's hits do.
+  return groundHits(toHits(rows as KeywordRow[]), sort);
 }
