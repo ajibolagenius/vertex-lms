@@ -13,7 +13,7 @@ import {
   SquareArrowOutUpRight,
   Users,
 } from "lucide-react";
-import { LessonViewTracker } from "@/components/course-actions";
+import { LessonViewTracker, MarkCompleteButton } from "@/components/course-actions";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
 import { LessonTabs } from "@/components/lesson/lesson-tabs";
 import { LessonVideo } from "@/components/lesson/video-player";
@@ -171,12 +171,16 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
     <div className="flex-1 bg-hatch px-0 sm:px-8">
       <div className="mx-auto w-full max-w-[1440px] border-x border-line bg-paper">
         <SiteHeader />
-        <LessonViewTracker
-          lessonSlug={slug}
-          lessonTitle={lesson.title ?? ""}
-          courseSlug={course?.slug ?? undefined}
-          moduleIndex={moduleIndex}
-        />
+        {/* Reads `?t=` to record where the learner left off, so it needs a boundary. */}
+        <Suspense fallback={null}>
+          <LessonViewTracker
+            lessonId={lesson._id}
+            lessonSlug={slug}
+            lessonTitle={lesson.title ?? ""}
+            courseSlug={course?.slug ?? undefined}
+            moduleIndex={moduleIndex}
+          />
+        </Suspense>
 
         {/* Reversed on small screens so the video comes before the course tree. */}
         <div className="flex flex-col-reverse lg:flex-row">
@@ -344,6 +348,8 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
           aria-label="Lesson navigation"
           className="flex flex-wrap items-center gap-4 border-t border-line px-6 py-[18px] sm:px-8"
         >
+          <MarkCompleteButton lessonId={lesson._id} lessonSlug={slug} />
+
           {previous?.slug && (
             <>
               <Link

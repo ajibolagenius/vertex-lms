@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { ArrowRight, Bookmark } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { ArrowRight, Bookmark, CircleCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
+import { saveProgress } from "@/lib/progress-client";
+import { startSecondsFrom } from "@/lib/video";
 import posthog from "posthog-js";
 
 export function CourseViewTracker({
@@ -54,17 +58,33 @@ export function ContinueLearningButton({ href }: { href: string }) {
   );
 }
 
+/**
+ * Fires the view event and, for a signed-in learner, records the lesson as where they left
+ * off — that is what `/my-learning` resumes to.
+ *
+ * ponytail: the position is the deep-linked start second, not real playback time. The player
+ * is a click-to-load facade with no provider API attached, so second-level resume means
+ * loading the YouTube IFrame API on every lesson. Add it if resume needs to be exact.
+ */
 export function LessonViewTracker({
+  lessonId,
   lessonSlug,
   lessonTitle,
   courseSlug,
   moduleIndex,
 }: {
+  lessonId: string;
   lessonSlug: string;
   lessonTitle: string;
   courseSlug?: string;
   moduleIndex: number;
 }) {
+  const { isSignedIn } = useAuth();
+  /* `?t=` is the second a search result deep-links to, so resuming returns to it. Read here
+     rather than from the page's searchParams so the route still prerenders — the caller
+     supplies the Suspense boundary that needs. */
+  const startSeconds = startSecondsFrom(useSearchParams().get("t"));
+
   useEffect(() => {
     // Sync with the browser on mount — external system (PostHog), not a user event.
     posthog.capture("lesson_viewed", {
@@ -77,7 +97,75 @@ export function LessonViewTracker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!isSignedIn) return;
+    saveProgress({ lessonId, positionSeconds: startSeconds });
+  }, [isSignedIn, lessonId, startSeconds]);
+
   return null;
+}
+
+/**
+ * Completion is explicit (AGENTS §7): the learner says so. The lesson page is prerendered, so
+ * the current state is read from the API on mount rather than rendered into the HTML.
+ */
+export function MarkCompleteButton({
+  lessonId,
+  lessonSlug,
+}: {
+  lessonId: string;
+  lessonSlug: string;
+}) {
+  const { isSignedIn } = useAuth();
+  const [completed, setCompleted] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    let cancelled = false;
+    fetch("/api/progress")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        const record = data.lessons?.find(
+          (entry: { lessonId: string }) => entry.lessonId === lessonId,
+        );
+        setCompleted(Boolean(record?.completed));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn, lessonId]);
+
+  if (!isSignedIn) return null;
+
+  const isComplete = completed === true;
+
+  return (
+    <button
+      type="button"
+      disabled={saving}
+      aria-pressed={isComplete}
+      onClick={async () => {
+        const next = !isComplete;
+        setSaving(true);
+        const ok = await saveProgress({ lessonId, completed: next });
+        setSaving(false);
+        if (!ok) return;
+        setCompleted(next);
+        if (next) posthog.capture("lesson_completed", { lesson_slug: lessonSlug });
+      }}
+      className={`inline-flex h-14 items-center gap-3 rounded-md border px-6 text-[15px] leading-[22px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:opacity-60 ${
+        isComplete
+          ? "border-transparent bg-primary-100 text-primary-600"
+          : "border-line bg-surface text-neutral-900 hover:bg-primary-100"
+      }`}
+    >
+      <CircleCheck size={18} aria-hidden="true" />
+      {isComplete ? "Completed" : "Mark as complete"}
+    </button>
+  );
 }
 
 /** The icon-only bookmark control in the lesson header. Presentational (AGENTS §7). */
