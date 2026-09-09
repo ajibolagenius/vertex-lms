@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { ArrowRight } from "lucide-react";
 
+import { ResumeLink } from "@/components/analytics/resume-link";
+import { ViewTracker } from "@/components/analytics/view-tracker";
 import { SiteHeader } from "@/components/nav/site-header";
 import { Card } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -34,6 +36,7 @@ export default async function MyLearningPage() {
     <div className="flex-1 bg-hatch px-0 sm:px-8">
       <div className="mx-auto w-full max-w-[1440px] border-x border-line bg-paper">
         <SiteHeader />
+        <ViewTracker event="my_learning_viewed" properties={{ course_count: courses.length }} />
 
         <main className="px-6 pt-14 pb-16 sm:px-12">
           <div className="flex flex-wrap items-baseline justify-between gap-4">
@@ -81,13 +84,13 @@ export default async function MyLearningPage() {
 
                     <div className="mt-auto pt-1">
                       {course.resume ? (
-                        <Link
+                        <ResumeLink
                           href={course.resume.href}
-                          className="inline-flex items-center gap-2 text-[15px] leading-[22px] font-semibold text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-                        >
-                          <span className="truncate">Continue: {course.resume.title}</span>
-                          <ArrowRight size={18} aria-hidden="true" className="shrink-0" />
-                        </Link>
+                          title={course.resume.title}
+                          lessonSlug={course.resume.slug}
+                          courseSlug={course.slug}
+                          positionSeconds={course.resume.positionSeconds}
+                        />
                       ) : (
                         <p className="text-[15px] leading-[22px] font-semibold text-success">
                           Course complete

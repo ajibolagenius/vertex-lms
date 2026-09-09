@@ -59,12 +59,13 @@ export function ContinueLearningButton({ href }: { href: string }) {
 }
 
 /**
- * Fires the view event and, for a signed-in learner, records the lesson as where they left
- * off — that is what `/my-learning` resumes to.
+ * Fires the view event and, for a signed-in learner, records that the lesson was started —
+ * that is what puts the course on `/my-learning`.
  *
- * ponytail: the position is the deep-linked start second, not real playback time. The player
- * is a click-to-load facade with no provider API attached, so second-level resume means
- * loading the YouTube IFrame API on every lesson. Add it if resume needs to be exact.
+ * Deliberately position-free: *where* the learner is comes from real playback, written by
+ * `LessonVideo`. Writing `?t=` here would record a search deep link the learner never
+ * watched as their resume point, and writing 0 on a plain visit would wipe the position
+ * they already had.
  */
 export function LessonViewTracker({
   lessonId,
@@ -92,6 +93,8 @@ export function LessonViewTracker({
       lesson_title: lessonTitle,
       course_slug: courseSlug,
       module_index: moduleIndex,
+      // 0 unless the learner arrived from a resume link or a search deep link.
+      resumed_from_seconds: startSeconds,
     });
     // Once per page load, not per re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,8 +102,8 @@ export function LessonViewTracker({
 
   useEffect(() => {
     if (!isSignedIn) return;
-    saveProgress({ lessonId, positionSeconds: startSeconds });
-  }, [isSignedIn, lessonId, startSeconds]);
+    saveProgress({ lessonId });
+  }, [isSignedIn, lessonId]);
 
   return null;
 }
@@ -112,9 +115,13 @@ export function LessonViewTracker({
 export function MarkCompleteButton({
   lessonId,
   lessonSlug,
+  courseSlug,
+  moduleIndex,
 }: {
   lessonId: string;
   lessonSlug: string;
+  courseSlug?: string;
+  moduleIndex: number;
 }) {
   const { isSignedIn } = useAuth();
   const [completed, setCompleted] = useState<boolean | null>(null);
@@ -154,7 +161,11 @@ export function MarkCompleteButton({
         setSaving(false);
         if (!ok) return;
         setCompleted(next);
-        if (next) posthog.capture("lesson_completed", { lesson_slug: lessonSlug });
+        posthog.capture(next ? "lesson_completed" : "lesson_uncompleted", {
+          lesson_slug: lessonSlug,
+          course_slug: courseSlug,
+          module_index: moduleIndex,
+        });
       }}
       className={`inline-flex h-14 items-center gap-3 rounded-md border px-6 text-[15px] leading-[22px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:opacity-60 ${
         isComplete

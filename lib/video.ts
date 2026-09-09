@@ -29,10 +29,16 @@ export function youtubeId(url: string | null | undefined): string | null {
   return id && /^[\w-]{6,20}$/.test(id) ? id : null;
 }
 
-/** The privacy-mode embed, starting at `startSeconds` — the provider's own player. */
+/**
+ * The privacy-mode embed, starting at `startSeconds` — the provider's own player.
+ *
+ * `enablejsapi=1` is what lets the lesson page attach the IFrame API and report watch
+ * depth. It only opens the postMessage channel; the API script itself is loaded lazily,
+ * after a play click.
+ */
 export function youtubeEmbedUrl(id: string, startSeconds = 0): string {
   const start = Number.isFinite(startSeconds) ? Math.max(0, Math.floor(startSeconds)) : 0;
-  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0${start ? `&start=${start}` : ""}`;
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&enablejsapi=1${start ? `&start=${start}` : ""}`;
 }
 
 /** Reads the `?t=` start-seconds a search result links with (AGENTS §7/§11). */

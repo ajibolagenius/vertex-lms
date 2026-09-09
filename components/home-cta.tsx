@@ -20,6 +20,7 @@ export function HomeCta() {
           query from the URL. `SearchForm` captures `search_initiated` itself. */}
       <SearchForm
         id="home-search"
+        source="home"
         variant="hero"
         label="Ask anything about your learning"
         placeholder="Ask anything about your learning..."

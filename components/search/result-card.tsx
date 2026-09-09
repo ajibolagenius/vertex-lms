@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import posthog from "posthog-js";
 import {
   Check,
   ChevronRight,
@@ -21,14 +24,27 @@ import { urlFor } from "@/sanity/lib/image";
  *
  * Every value comes from the response, which the route grounded against Sanity — nothing
  * here is derived, defaulted or invented client-side.
+ *
+ * `"use client"` is explicit because the card captures its own click — it was already in
+ * the client bundle, imported by `SearchResults`.
  */
-export function ResultCard({ result }: { result: SearchResult }) {
+export function ResultCard({ result, query }: { result: SearchResult; query: string }) {
   const video = result.kind === "video";
   const startSeconds = video ? result.startSeconds : null;
 
   return (
     <Link
       href={result.href}
+      onClick={() =>
+        posthog.capture("search_result_opened", {
+          query,
+          result_type: result.kind,
+          rank: result.rank,
+          lesson_slug: result.lessonSlug,
+          course_slug: result.courseSlug,
+          start_seconds: startSeconds,
+        })
+      }
       className={cn(
         "group flex flex-col gap-4 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm",
         "transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
