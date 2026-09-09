@@ -3,10 +3,16 @@ import { openai } from "@ai-sdk/openai";
 import type { MCPClient } from "@ai-sdk/mcp";
 import { generateText, Output, stepCountIs } from "ai";
 
-import { groundHits } from "@/lib/search/ground";
+import { groundHits, keywordSearch, type Grounded } from "@/lib/search/ground";
 import { createSearchMcpClient, fetchInitialContext } from "@/lib/search/mcp";
 import { buildSystemPrompt } from "@/lib/search/system-prompt";
-import { ModelAnswerSchema, SearchRequestSchema, type SearchResponse } from "@/lib/search/types";
+import {
+  ModelAnswerSchema,
+  SearchRequestSchema,
+  type SearchResponse,
+  type Sort,
+} from "@/lib/search/types";
+import { pluralize } from "@/lib/format";
 import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
@@ -36,8 +42,10 @@ export async function POST(request: Request) {
   const { query, sort } = parsed.data;
 
   if (!process.env.OPENAI_API_KEY || !process.env.SANITY_CONTEXT_MCP_URL) {
-    console.error("search: OPENAI_API_KEY or SANITY_CONTEXT_MCP_URL is not set");
-    return Response.json({ error: "Search is not configured." }, { status: 500 });
+    console.error(
+      "search: OPENAI_API_KEY or SANITY_CONTEXT_MCP_URL is not set — using keyword search",
+    );
+    return keywordResponse(query, sort);
   }
 
   let mcpClient: MCPClient | null = null;
@@ -60,31 +68,53 @@ export async function POST(request: Request) {
       stopWhen: stepCountIs(MAX_STEPS),
       output: Output.object({ schema: ModelAnswerSchema }),
       providerOptions: { openai: { reasoningEffort: "low" } },
+      // One retry, not the SDK's default two: a hard failure (an exhausted quota, say)
+      // should reach the keyword fallback quickly rather than after three attempts.
+      maxRetries: 1,
     });
 
     const answer = ModelAnswerSchema.parse(generated.output);
-    const { count, courseCount, results } = await groundHits(answer.hits, sort);
+    const grounded = await groundHits(answer.hits, sort);
 
-    getPostHogClient()?.capture({
-      distinctId: (await auth()).userId ?? "anonymous",
-      event: "search_performed",
-      properties: { query, sort, result_count: count, course_count: courseCount },
-    });
-
-    const body: SearchResponse = {
-      query,
-      sort,
-      count,
-      courseCount,
-      reply: answer.reply,
-      results,
-    };
-    return Response.json(body);
+    return respond(query, sort, "agent", answer.reply, grounded);
   } catch (error) {
     // Logged in full server-side; the client gets one generic line and no internals.
-    console.error("search failed:", error);
-    return Response.json({ error: "Search is unavailable right now." }, { status: 502 });
+    console.error("search failed, falling back to keyword search:", error);
+    // A dead model must not mean a dead results page: Sanity can answer this itself.
+    return keywordResponse(query, sort);
   } finally {
     await mcpClient?.close();
   }
+}
+
+/** The GROQ path (§11). Only if this also fails does the client see an error. */
+async function keywordResponse(query: string, sort: Sort) {
+  try {
+    const grounded = await keywordSearch(query, sort);
+    const reply = grounded.count
+      ? `Matched ${pluralize(grounded.count, "lesson")} on your keywords.`
+      : "Nothing in the catalog matches those keywords yet.";
+    return respond(query, sort, "keyword", reply, grounded);
+  } catch (error) {
+    console.error("keyword search failed:", error);
+    return Response.json({ error: "Search is unavailable right now." }, { status: 502 });
+  }
+}
+
+/** One place that shapes the response and records the event, whichever path produced it. */
+async function respond(
+  query: string,
+  sort: Sort,
+  source: SearchResponse["source"],
+  reply: string,
+  { count, courseCount, results }: Grounded,
+) {
+  getPostHogClient()?.capture({
+    distinctId: (await auth()).userId ?? "anonymous",
+    event: "search_performed",
+    properties: { query, sort, source, result_count: count, course_count: courseCount },
+  });
+
+  const body: SearchResponse = { query, sort, source, count, courseCount, reply, results };
+  return Response.json(body);
 }

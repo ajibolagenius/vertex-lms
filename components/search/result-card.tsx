@@ -63,7 +63,11 @@ export function ResultCard({ result }: { result: SearchResult }) {
         <h3 className="mt-2 text-[17px] leading-[26px] font-semibold text-neutral-900">
           {result.lessonTitle}
         </h3>
-        <p className="mt-1.5 text-[14px] leading-[21px] text-neutral-500">{result.reason}</p>
+        {/* Two lines, as the reference draws it — a long grounded description is cut by
+            the clamp rather than allowed to push the meta row down. */}
+        <p className="mt-1.5 line-clamp-3 text-[14px] leading-[21px] text-neutral-500 sm:line-clamp-2">
+          {result.reason}
+        </p>
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pt-3">
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] leading-[18px] text-neutral-500">
@@ -92,8 +96,7 @@ export function ResultCard({ result }: { result: SearchResult }) {
             {video ? (
               <>
                 <CirclePlay size={16} aria-hidden="true" />
-                {/* No timestamp until video documents carry chapters (AGENTS §7/§9) —
-                    the label never claims a second the data does not have. */}
+                {/* The label never claims a second the data does not have (AGENTS §7). */}
                 {startSeconds ? `Watch from ${formatTimestamp(startSeconds)}` : "Watch lesson"}
               </>
             ) : (
@@ -156,6 +159,8 @@ function KeyPointsPanel({ result }: { result: SearchResult }) {
             <span aria-hidden="true" className="text-neutral-500">
               &bull;
             </span>
+            {/* One line each, as the reference draws them. A real key point is often a
+                sentence, and two lines overflow the fixed 16:9 panel. */}
             <span className="line-clamp-1">{point}</span>
           </li>
         ))}
