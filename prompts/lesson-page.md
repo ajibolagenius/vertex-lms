@@ -168,7 +168,7 @@ filled primary play button.
 
 ## Checks
 
-```
+```sh
 npx tsc --noEmit
 npx eslint
 npm run build          # new route + client components
