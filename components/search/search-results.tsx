@@ -40,6 +40,19 @@ function toSort(value: string | null): Sort {
   return SORTS.includes(value as Sort) ? (value as Sort) : "relevance";
 }
 
+/**
+ * The browser's current PostHog distinct id, or `undefined` before the SDK has initialised
+ * (or when the token is missing, so `posthog.init` never ran). Guarded because this is the
+ * only place the client reaches into PostHog state for a value rather than to capture.
+ */
+function getPostHogDistinctId(): string | undefined {
+  try {
+    return posthog.get_distinct_id() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function SearchResults() {
   const params = useSearchParams();
   const pathname = usePathname();
@@ -59,9 +72,17 @@ export function SearchResults() {
     // A fast second search cancels the first rather than racing it.
     const controller = new AbortController();
 
+    // Tell the server which visitor this is, so a signed-out searcher is counted under the
+    // distinct id their browser already sends on every client event — not the shared literal
+    // "anonymous". A signed-in learner still resolves to their Clerk id server-side.
+    const distinctId = getPostHogDistinctId();
+
     fetch("/api/search", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(distinctId ? { "x-posthog-distinct-id": distinctId } : {}),
+      },
       body: JSON.stringify({ query, sort }),
       signal: controller.signal,
     })

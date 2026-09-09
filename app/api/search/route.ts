@@ -40,12 +40,13 @@ export async function POST(request: Request) {
     );
   }
   const { query, sort } = parsed.data;
+  const distinctId = await resolveDistinctId(request);
 
   if (!process.env.OPENAI_API_KEY || !process.env.SANITY_CONTEXT_MCP_URL) {
     console.error(
       "search: OPENAI_API_KEY or SANITY_CONTEXT_MCP_URL is not set — using keyword search",
     );
-    return keywordResponse(query, sort);
+    return keywordResponse(query, sort, distinctId);
   }
 
   let mcpClient: MCPClient | null = null;
@@ -76,25 +77,39 @@ export async function POST(request: Request) {
     const answer = ModelAnswerSchema.parse(generated.output);
     const grounded = await groundHits(answer.hits, sort);
 
-    return respond(query, sort, "agent", answer.reply, grounded);
+    return respond(query, sort, "agent", answer.reply, grounded, distinctId);
   } catch (error) {
     // Logged in full server-side; the client gets one generic line and no internals.
     console.error("search failed, falling back to keyword search:", error);
     // A dead model must not mean a dead results page: Sanity can answer this itself.
-    return keywordResponse(query, sort);
+    return keywordResponse(query, sort, distinctId);
   } finally {
     await mcpClient?.close();
   }
 }
 
+/**
+ * Who this search belongs to. A signed-in learner is their Clerk id, matching every other
+ * per-user write. A signed-out visitor is the distinct id their browser already uses for
+ * PostHog, sent in a header — not the literal "anonymous", which merged every anonymous
+ * searcher into one person and broke identify-merge once they signed in. Bounded because a
+ * header is untrusted and PostHog caps a distinct id at 200 characters anyway.
+ */
+async function resolveDistinctId(request: Request): Promise<string> {
+  const { userId } = await auth();
+  if (userId) return userId;
+  const fromClient = request.headers.get("x-posthog-distinct-id")?.trim();
+  return fromClient && fromClient.length <= 200 ? fromClient : "anonymous";
+}
+
 /** The GROQ path (§11). Only if this also fails does the client see an error. */
-async function keywordResponse(query: string, sort: Sort) {
+async function keywordResponse(query: string, sort: Sort, distinctId: string) {
   try {
     const grounded = await keywordSearch(query, sort);
     const reply = grounded.count
       ? `Matched ${pluralize(grounded.count, "lesson")} on your keywords.`
       : "Nothing in the catalog matches those keywords yet.";
-    return respond(query, sort, "keyword", reply, grounded);
+    return respond(query, sort, "keyword", reply, grounded, distinctId);
   } catch (error) {
     console.error("keyword search failed:", error);
     return Response.json({ error: "Search is unavailable right now." }, { status: 502 });
@@ -102,15 +117,16 @@ async function keywordResponse(query: string, sort: Sort) {
 }
 
 /** One place that shapes the response and records the event, whichever path produced it. */
-async function respond(
+function respond(
   query: string,
   sort: Sort,
   source: SearchResponse["source"],
   reply: string,
   { count, courseCount, results }: Grounded,
+  distinctId: string,
 ) {
   getPostHogClient()?.capture({
-    distinctId: (await auth()).userId ?? "anonymous",
+    distinctId,
     event: "search_performed",
     properties: {
       query,
