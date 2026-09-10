@@ -5,6 +5,7 @@ import { SearchForm } from "@/components/search/search-form";
 const items: NavItem[] = [
   { label: "Courses", href: "/courses" },
   { label: "My Learning", href: "/my-learning" },
+  { label: "Collections", href: "/collections" },
 ];
 
 /**

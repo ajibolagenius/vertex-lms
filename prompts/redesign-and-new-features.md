@@ -221,12 +221,30 @@ documents, and a stable `quiz.<slug>` id means the import is a whole-document
 `--replace` needing no write token, exactly like the video pipeline. The lesson query
 picks it up by reverse reference.
 
-### Phase 6 — Collections
-- `studio/schemaTypes/documents/collection.ts` (new).
-- `sanity/lib/queries.ts` — collection queries.
-- `app/api/collections/route.ts` (new), `app/collections/page.tsx`,
-  `app/collections/[slug]/page.tsx` (new), `components/collections/save-button.tsx` (new).
-- `proxy.ts` — protect the personal view.
+### Phase 6 — Collections (done)
+- `studio/schemaTypes/documents/collection.ts` (new) and `studio/schemaTypes/index.ts`. Schema and Studio deployed.
+- `sanity/lib/queries.ts` — collection queries (`COLLECTIONS_BY_OWNER_QUERY`, `CURATED_COLLECTIONS_QUERY`, `COLLECTION_BY_SLUG_QUERY`, `COLLECTION_SLUGS_QUERY`).
+- `lib/collections.ts` + `lib/collections.check.mjs` (`npm run check:collections`).
+- `app/api/collections/route.ts` (new) — Clerk auth, owner-guard (403 for foreign or curated collections), Zod validation, create/toggle/remove/delete.
+- `proxy.ts` — protect `/collections` (personal lists view) while keeping curated paths at `/collections/[slug]` public.
+- `components/collections/save-button.tsx` (new) — interactive save/toggle popover with optimistic update and PostHog tracking (`collection_saved`), mounted on lesson page and search result cards.
+- `app/collections/page.tsx` and `app/collections/[slug]/page.tsx` (new) — personal view and collection detail pages with Signal design language.
+- `components/nav/site-header.tsx` — added Collections navigation link.
+
+### Phase 7 - Icons, PWA and Packaging
+- Replace remaining ad hoc icon markup with the existing icon primitive and add the
+  required favicon, Apple touch icon and maskable app icons.
+- Add a web app manifest with the product name, responsive display settings, theme and
+  background colors, start URL, and generated icon sizes.
+- Add a service worker or the project's existing PWA integration for the app shell,
+  static assets and offline fallback; never cache authenticated or user-specific API
+  responses.
+- Add installability metadata and verify mobile browser safe-area handling, viewport
+  behavior, and standalone navigation on iOS and Android.
+- Add a packaging/release check that validates manifest fields, icon dimensions,
+  service-worker registration, and production asset paths.
+- Update the design-system page and README with icon usage, PWA behavior, and the
+  packaging/release commands.
 
 ## Requirements
 

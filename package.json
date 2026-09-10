@@ -19,7 +19,8 @@
     "check:transcript": "tsx lib/transcript.check.mjs",
     "check:lesson-qa": "tsx lib/lesson-qa/select.check.mjs",
     "check:quiz": "tsx lib/quiz.check.mjs",
-    "check:streak": "tsx lib/streak.check.mjs"
+    "check:streak": "tsx lib/streak.check.mjs",
+    "check:collections": "tsx lib/collections.check.mjs"
   },
   "dependencies": {
     "@ai-sdk/mcp": "^2.0.45",

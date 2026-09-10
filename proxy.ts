@@ -4,7 +4,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
  * Public-first (AGENTS §7): browsing the catalog, courses, lessons and instructors stays open.
  * Only per-learner surfaces are gated here — never in client code (AGENTS §12).
  */
-const isProtectedRoute = createRouteMatcher(["/my-learning(.*)"]);
+const isProtectedRoute = createRouteMatcher(["/my-learning(.*)", "/collections"]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) await auth.protect();

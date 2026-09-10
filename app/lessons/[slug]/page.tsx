@@ -11,6 +11,7 @@ import {
   SquareArrowOutUpRight,
 } from "lucide-react";
 import { LessonViewTracker, MarkCompleteButton } from "@/components/course-actions";
+import { SaveButton } from "@/components/collections/save-button";
 import { LessonPlayerProvider } from "@/components/lesson/player-context";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
 import { LessonTabs } from "@/components/lesson/lesson-tabs";
@@ -325,6 +326,7 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
                 courseSlug={course?.slug ?? undefined}
                 moduleIndex={moduleIndex}
               />
+              <SaveButton lessonId={lesson._id} lessonTitle={lesson.title ?? ""} />
 
               <span className="ml-auto flex flex-wrap items-center gap-3">
                 {previous?.slug && (

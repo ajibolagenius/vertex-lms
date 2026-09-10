@@ -288,3 +288,79 @@ export const LESSON_QA_CONTEXT_QUERY = defineQuery(/* groq */ `
     "chunks": *[_type == "video" && url == ^.videoUrl][0].chunks[]{startSeconds, text}
   }
 `)
+
+/**
+ * Collections owned by a specific learner (AGENTS §8). Keyed off Clerk user id.
+ * Used by `/collections` and `/api/collections`.
+ */
+export const COLLECTIONS_BY_OWNER_QUERY = defineQuery(/* groq */ `
+  *[_type == "collection" && owner == $userId] | order(_updatedAt desc) {
+    _id,
+    _createdAt,
+    _updatedAt,
+    title,
+    "slug": slug.current,
+    description,
+    owner,
+    "lessonCount": count(lessons),
+    "duration": math::sum(lessons[]->duration),
+    "lessonIds": lessons[]._ref
+  }
+`)
+
+/**
+ * Author-curated learning paths published in the Studio (no owner set).
+ * Publicly readable by all learners (AGENTS §8).
+ */
+export const CURATED_COLLECTIONS_QUERY = defineQuery(/* groq */ `
+  *[_type == "collection" && !defined(owner) && defined(slug.current)] | order(title asc) {
+    _id,
+    _createdAt,
+    _updatedAt,
+    title,
+    "slug": slug.current,
+    description,
+    "lessonCount": count(lessons),
+    "duration": math::sum(lessons[]->duration),
+    "lessonIds": lessons[]._ref
+  }
+`)
+
+/**
+ * One collection by its slug: projects its full lesson sequence with durations and
+ * parent course titles. If `owner` is set, callers must verify ownership before
+ * rendering (§8/§12).
+ */
+export const COLLECTION_BY_SLUG_QUERY = defineQuery(/* groq */ `
+  *[_type == "collection" && slug.current == $slug][0] {
+    _id,
+    _createdAt,
+    _updatedAt,
+    title,
+    "slug": slug.current,
+    description,
+    owner,
+    "lessonCount": count(lessons),
+    "duration": math::sum(lessons[]->duration),
+    lessons[]->{
+      _id,
+      title,
+      "slug": slug.current,
+      duration,
+      freePreview,
+      thumbnail,
+      "course": *[_type == "course" && references(^._id)][0]{
+        _id,
+        title,
+        "slug": slug.current,
+        coverImage,
+        level
+      }
+    }
+  }
+`)
+
+export const COLLECTION_SLUGS_QUERY = defineQuery(/* groq */ `
+  *[_type == "collection" && defined(slug.current)].slug.current
+`)
+

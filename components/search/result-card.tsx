@@ -8,6 +8,7 @@ import { formatTimestamp } from "@/lib/format";
 import type { SearchResult } from "@/lib/search/types";
 import { cn } from "@/lib/utils";
 import { urlFor } from "@/sanity/lib/image";
+import { SaveButton } from "@/components/collections/save-button";
 
 /**
  * One search result, in the two kinds the product returns (AGENTS §11): a video moment
@@ -78,27 +79,34 @@ export function ResultCard({ result, query }: { result: SearchResult; query: str
             {result.moduleTitle && <span className="truncate">{result.moduleTitle}</span>}
           </span>
 
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 text-data",
-              video ? "text-moment" : "text-accent",
-            )}
-          >
-            {video ? (
-              <>
-                <Play size={13} aria-hidden="true" className="fill-current" />
-                {/* Never claims a second the data does not have (AGENTS §7). */}
-                {startSeconds !== null
-                  ? `Watch from ${formatTimestamp(startSeconds)}`
-                  : "Watch lesson"}
-              </>
-            ) : (
-              <>
-                Open lesson
-                <ArrowUpRight size={14} aria-hidden="true" />
-              </>
-            )}
-          </span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <SaveButton
+              lessonId={result.lessonId}
+              lessonTitle={result.lessonTitle}
+              size="sm"
+            />
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 text-data",
+                video ? "text-moment" : "text-accent",
+              )}
+            >
+              {video ? (
+                <>
+                  <Play size={13} aria-hidden="true" className="fill-current" />
+                  {/* Never claims a second the data does not have (AGENTS §7). */}
+                  {startSeconds !== null
+                    ? `Watch from ${formatTimestamp(startSeconds)}`
+                    : "Watch lesson"}
+                </>
+              ) : (
+                <>
+                  Open lesson
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </>
+              )}
+            </span>
+          </div>
         </div>
       </div>
     </Link>

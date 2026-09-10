@@ -1,6 +1,7 @@
 import {type SchemaTypeDefinition} from 'sanity'
 
 import {category} from './documents/category'
+import {collection} from './documents/collection'
 import {course} from './documents/course'
 import {instructor} from './documents/instructor'
 import {lesson} from './documents/lesson'
@@ -21,6 +22,7 @@ export const schema: {types: SchemaTypeDefinition[]} = {
     category,
     video,
     quiz,
+    collection,
     progress,
     courseModule,
     learningOutcome,
