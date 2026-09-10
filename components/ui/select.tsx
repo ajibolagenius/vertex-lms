@@ -20,9 +20,9 @@ export function Select({
       <select
         id={id}
         className={cn(
-          "h-11 w-full appearance-none rounded-md border border-neutral-200 bg-white",
-          "px-4 pr-11 text-[14px] font-medium text-neutral-900",
-          "focus:border-primary-400 focus:outline-none",
+          "h-9 w-full appearance-none rounded-sm border border-line bg-surface",
+          "px-3 pr-9 text-[14px] font-medium text-ink",
+          "hover:border-line-strong focus:border-accent focus:outline-none",
         )}
         {...props}
       >
@@ -31,9 +31,9 @@ export function Select({
         ))}
       </select>
       <ChevronDown
-        size={18}
+        size={16}
         aria-hidden="true"
-        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-neutral-700"
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted"
       />
     </div>
   );

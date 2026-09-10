@@ -1,11 +1,15 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * The two search result kinds get the system's two hues — a matched video moment
+ * is `moment`, a lesson is `accent`. Everything else is quiet.
+ */
 export type BadgeVariant = "video" | "lesson" | "popular";
 
 const variants: Record<BadgeVariant, string> = {
-  video: "bg-primary-100 text-primary-500 font-semibold",
-  lesson: "bg-lesson-bg text-lesson-fg font-semibold",
-  popular: "bg-primary-100 text-primary-500 font-semibold",
+  video: "bg-moment-soft text-moment",
+  lesson: "bg-accent-soft text-accent",
+  popular: "bg-raised text-ink-muted",
 };
 
 export function Badge({
@@ -20,8 +24,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-[6px] px-2 py-1",
-        "text-[12px] leading-[16px] uppercase tracking-wider",
+        "inline-flex items-center rounded-xs px-2 py-1 text-meta",
         variants[variant],
         className,
       )}

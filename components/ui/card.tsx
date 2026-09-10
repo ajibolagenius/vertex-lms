@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
-/** `paper` is the warm surface the home page uses; `white` is the design-system default. */
+/** `surface` sits on the canvas; `raised` is the inset fill for a panel inside a card. */
 export type CardTone = "white" | "paper";
 
 const tones: Record<CardTone, string> = {
-  white: "border-neutral-200 bg-white",
-  paper: "border-line bg-surface",
+  white: "border-line bg-surface",
+  paper: "border-line bg-raised",
 };
 
 export function Card({
@@ -17,9 +17,8 @@ export function Card({
   className?: string;
   children: React.ReactNode;
 }) {
+  /* Border, not shadow — see the shape notes in globals.css. */
   return (
-    <div className={cn("rounded-lg border p-5 shadow-sm", tones[tone], className)}>
-      {children}
-    </div>
+    <div className={cn("rounded-md border p-5", tones[tone], className)}>{children}</div>
   );
 }

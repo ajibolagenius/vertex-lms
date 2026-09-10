@@ -2,6 +2,11 @@ import type { ComponentProps } from "react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * The field the product is built around, at three sizes. Signal makes it the
+ * loudest element on the home page, so `hero` is a full-width slab with a
+ * visible border rather than a pill.
+ */
 export type SearchInputVariant = "md" | "page" | "hero";
 
 const variants: Record<
@@ -9,33 +14,33 @@ const variants: Record<
   { field: string; icon: number; iconPos: string; shortcut: string }
 > = {
   md: {
-    field: "h-11 rounded-md pl-11 pr-14 text-[14px]",
+    field: "h-9 rounded-sm pl-9 pr-14 text-[14px]",
+    icon: 16,
+    iconPos: "left-3",
+    shortcut: "right-3 text-data text-ink-disabled",
+  },
+  /* The search results page. */
+  page: {
+    field: "h-12 rounded-sm pl-11 pr-[76px] text-[15px]",
     icon: 18,
     iconPos: "left-4",
-    shortcut: "right-4 text-[12px] leading-[16px] text-neutral-500",
-  },
-  /* The search results page: 48px tall, and the ⌘K hint is a boxed key chip. */
-  page: {
-    field: "h-12 rounded-md pl-12 pr-[72px] text-[15px]",
-    icon: 20,
-    iconPos: "left-4",
     shortcut:
-      "right-3 flex h-7 items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 text-[12px] leading-[16px] text-neutral-500",
+      "right-3 flex h-7 items-center rounded-xs border border-line bg-raised px-2 text-data text-ink-muted",
   },
-  /* The home hero: 86px tall, with the ⌘K hint drawn as a boxed key chip. */
+  /* The home hero. */
   hero: {
     field:
-      "h-16 rounded-[14px] pl-14 pr-24 text-[15px] sm:h-[86px] sm:pl-[72px] sm:pr-[104px] sm:text-[17px]",
-    icon: 26,
-    iconPos: "left-5 sm:left-6",
+      "h-16 rounded-md pl-14 pr-24 text-[16px] sm:h-[76px] sm:pl-16 sm:pr-28 sm:text-[18px]",
+    icon: 22,
+    iconPos: "left-5",
     shortcut:
-      "right-4 flex h-10 items-center rounded-lg border border-line bg-white px-3 text-[13px] text-neutral-500 sm:right-6 sm:px-4",
+      "right-4 flex h-9 items-center rounded-xs border border-line bg-raised px-3 text-data text-ink-muted sm:right-5",
   },
 };
 
 export function SearchInput({
   label = "Search",
-  shortcut = "⌘ K",
+  shortcut = "⌘K",
   variant = "md",
   className,
   id = "search",
@@ -56,7 +61,7 @@ export function SearchInput({
         size={spec.icon}
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute top-1/2 -translate-y-1/2 text-neutral-500",
+          "pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-muted",
           spec.iconPos,
         )}
       />
@@ -65,8 +70,10 @@ export function SearchInput({
         type="search"
         placeholder="Search anything..."
         className={cn(
-          "w-full border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-500",
-          "focus:border-primary-400 focus:outline-none",
+          "w-full border border-line bg-surface text-ink placeholder:text-ink-disabled",
+          "hover:border-line-strong focus:border-accent",
+          // The global :focus-visible ring would double up with the border here.
+          "focus:outline-none",
           spec.field,
         )}
         {...props}
@@ -74,10 +81,7 @@ export function SearchInput({
       {shortcut && (
         <span
           aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute top-1/2 -translate-y-1/2",
-            spec.shortcut,
-          )}
+          className={cn("pointer-events-none absolute top-1/2 -translate-y-1/2", spec.shortcut)}
         >
           {shortcut}
         </span>

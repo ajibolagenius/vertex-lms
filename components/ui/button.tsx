@@ -1,12 +1,18 @@
 import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
-import { CirclePlay, SquareArrowOutUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Signal buttons: one accent fill, one outline, one quiet fill, one link.
+ * Borders and fills carry the hierarchy — there are no button shadows.
+ *
+ * Icons are passed in by the caller. An earlier version injected one per variant,
+ * which meant a "Play" button could not be a "Save" button.
+ */
+
 const base = [
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium",
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
-  "disabled:cursor-not-allowed disabled:pointer-events-none",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-medium",
+  "transition-colors disabled:cursor-not-allowed disabled:pointer-events-none",
 ].join(" ");
 
 export type ButtonVariant = "primary" | "secondary" | "tertiary" | "text";
@@ -16,40 +22,31 @@ export type ButtonState = "default" | "hover" | "disabled";
 
 const variants: Record<ButtonVariant, Record<ButtonState, string>> = {
   primary: {
-    default: "bg-primary-500 text-white hover:bg-primary-600",
-    hover: "bg-primary-600 text-white",
-    disabled: "bg-primary-100 text-primary-300",
+    default: "bg-accent text-on-accent hover:bg-accent-hover",
+    hover: "bg-accent-hover text-on-accent",
+    disabled: "bg-raised text-ink-disabled",
   },
   secondary: {
-    default:
-      "border border-primary-500 text-primary-500 bg-white hover:bg-primary-100",
-    hover: "border border-primary-500 text-primary-500 bg-primary-100",
-    disabled: "border border-primary-200 text-primary-300 bg-white",
+    default: "border border-line-strong text-ink bg-surface hover:border-ink hover:bg-raised",
+    hover: "border border-ink text-ink bg-raised",
+    disabled: "border border-line text-ink-disabled bg-surface",
   },
   tertiary: {
-    default:
-      "border border-neutral-200 text-neutral-900 bg-white hover:bg-neutral-50",
-    hover: "border border-neutral-200 text-neutral-900 bg-neutral-50 shadow-sm",
-    disabled: "border border-neutral-200 text-neutral-300 bg-white",
+    default: "bg-raised text-ink hover:bg-line",
+    hover: "bg-line text-ink",
+    disabled: "bg-raised text-ink-disabled",
   },
   text: {
-    default: "text-primary-500 hover:text-primary-600",
-    hover: "text-primary-600",
-    disabled: "text-primary-300",
+    default: "text-accent underline-offset-4 hover:underline",
+    hover: "text-accent underline underline-offset-4",
+    disabled: "text-ink-disabled",
   },
 };
 
-/* Button type is set explicitly (Inter Medium 14–16px), not from the type scale. */
 const sizes: Record<ButtonSize, string> = {
-  /* Hero call to action: 60px tall, roomier padding, wider icon gap. */
-  xl: "h-[60px] px-7 text-[16px] gap-3",
-  lg: "h-11 px-4 text-[16px]",
-  md: "h-11 px-3 text-[14px]",
-};
-
-const icons: Partial<Record<ButtonVariant, ReactNode>> = {
-  tertiary: <SquareArrowOutUpRight size={16} aria-hidden="true" />,
-  text: <CirclePlay size={16} aria-hidden="true" />,
+  xl: "h-14 px-6 text-[16px]",
+  lg: "h-11 px-4 text-[15px]",
+  md: "h-9 px-3 text-[14px]",
 };
 
 /** Same surface as `Button`, for a call to action that navigates. */
@@ -67,7 +64,15 @@ export function ButtonLink({
   children: ReactNode;
 }) {
   return (
-    <Link href={href} className={cn(base, sizes[size], variants[variant].default, className)}>
+    <Link
+      href={href}
+      className={cn(
+        base,
+        variant === "text" ? "h-auto" : sizes[size],
+        variants[variant].default,
+        className,
+      )}
+    >
       {children}
     </Link>
   );
@@ -92,7 +97,7 @@ export function Button({
         base,
         // The text variant has no surface: no height, no padding, size only.
         variant === "text"
-          ? cn("h-auto", size === "md" ? "text-[14px]" : "text-[16px]")
+          ? cn("h-auto", size === "md" ? "text-[14px]" : "text-[15px]")
           : sizes[size],
         variants[variant][state],
         className,
@@ -100,7 +105,6 @@ export function Button({
       {...props}
     >
       {children}
-      {icons[variant]}
     </button>
   );
 }

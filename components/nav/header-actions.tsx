@@ -3,11 +3,13 @@
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import posthog from "posthog-js";
 
 export function HeaderActions() {
   return (
     <div className="flex shrink-0 items-center gap-4 sm:gap-5">
+      <ThemeToggle />
       <button
         type="button"
         aria-label="Notifications"

@@ -1,114 +1,243 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Signal — the Vertex design language.
+
+   One set of semantic tokens, two themes. Raw values live on :root and
+   :root[data-theme="dark"]; `@theme inline` maps them to utilities, so
+   `bg-surface` resolves through the variable and follows the active theme
+   instead of baking a hex into the class.
+
+   The theme attribute is set before paint by the inline script in
+   app/layout.tsx, which resolves the OS preference itself — that is why there
+   is no `prefers-color-scheme` block here. Without JavaScript the site is light.
+
+   The theme selectors are element-level, not `:root`-only, so any container can
+   flip theme locally — which is what lets /design-system show both at once.
+
+   Names are semantic (canvas / surface / ink / accent), never scale-based:
+   `neutral-900` cannot mean the right thing in both themes.
+--------------------------------------------------------------------------- */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --canvas: #fafafa;
+  --surface: #ffffff;
+  /* Subtle fill: hovered rows, code, chips, inset panels. */
+  --raised: #f4f4f5;
+  --line: #e6e6e6;
+  --line-strong: #d4d4d8;
+
+  --ink: #111214;
+  --ink-muted: #6b6f76;
+  /* 3:1 against the canvas — disabled controls and decoration only, never body copy. */
+  --ink-disabled: #a1a5ac;
+
+  --accent: #5b4be8;
+  --accent-hover: #4839d6;
+  --accent-soft: #eeebff;
+  --on-accent: #ffffff;
+
+  /* A matched video moment. The second hue in the system, and the only one:
+     it separates the two search result kinds without inventing a palette. */
+  --moment: #0e7490;
+  --moment-soft: #e2f4f8;
+  --on-moment: #ffffff;
+
+  --success: #0e8a55;
+  --danger: #c23a32;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --canvas: #0b0c0e;
+  --surface: #141619;
+  --raised: #1c1f24;
+  --line: #26282d;
+  --line-strong: #3a3d44;
+
+  --ink: #f4f4f5;
+  --ink-muted: #9aa0a6;
+  --ink-disabled: #5f646b;
+
+  --accent: #7c6cf7;
+  --accent-hover: #9385ff;
+  --accent-soft: #211e3d;
+  --on-accent: #0b0c0e;
+
+  --moment: #22d3ee;
+  --moment-soft: #102a31;
+  --on-moment: #06222a;
+
+  --success: #34d399;
+  --danger: #f87171;
+}
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, monospace;
+  /* Signal has no serif. `font-display` stays as an alias so anything still
+     asking for it gets Inter rather than falling back to Georgia. */
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-disabled: var(--ink-disabled);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+
+  --color-moment: var(--moment);
+  --color-moment-soft: var(--moment-soft);
+  --color-on-moment: var(--on-moment);
+
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+
+  /* Compatibility aliases — phase 1 only.
+     Pages and cards still carry the old class names; pointing them at the new
+     tokens keeps the app coherent in both themes between phases. Phase 2
+     rewrites the call sites and deletes this block. */
+  --color-white: var(--surface);
+  --color-black: var(--ink);
+  --color-primary-600: var(--accent-hover);
+  --color-primary-500: var(--accent);
+  --color-primary-400: var(--accent);
+  --color-primary-300: var(--ink-disabled);
+  --color-primary-200: var(--line);
+  --color-primary-100: var(--accent-soft);
+  --color-neutral-900: var(--ink);
+  --color-neutral-700: var(--ink-muted);
+  --color-neutral-500: var(--ink-muted);
+  --color-neutral-300: var(--line-strong);
+  --color-neutral-200: var(--line);
+  --color-neutral-100: var(--raised);
+  --color-neutral-50: var(--canvas);
+  --color-paper: var(--canvas);
+  --color-lesson-bg: var(--accent-soft);
+  --color-lesson-fg: var(--accent);
 }
 
 @theme {
-  /* 01 — Colors */
-  --color-primary-600: #ea580c;
-  --color-primary-500: #f97316;
-  --color-primary-400: #fb923c;
-  --color-primary-300: #fdba74;
-  --color-primary-200: #fed7aa;
-  --color-primary-100: #ffeee5;
-
-  --color-neutral-900: #0f172a;
-  --color-neutral-700: #334155;
-  --color-neutral-500: #64748b;
-  --color-neutral-300: #cbd5e1;
-  --color-neutral-200: #e2e8f0;
-  --color-neutral-100: #f1f5f9;
-  --color-neutral-50: #fafafc;
-
-  /* Warm paper surfaces — the home page's page/card/hairline colours. */
-  --color-paper: #fbf8f6;
-  --color-surface: #fdfbfa;
-  --color-line: #f0e8e2;
-
-  --color-success: #16a34a;
-  --color-lesson-bg: #eef0fe;
-  --color-lesson-fg: #4f46e5;
-
-  /* 05 — Radius */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
+  /* Shape: borders carry the structure, so the radius scale is tighter and the
+     shadow scale is two entries — one for popovers, one for modals. */
+  --radius-xs: 2px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-xl: 16px;
 
-  /* 05 — Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
-  --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.08);
-  --shadow-lg: 0 12px 24px -4px rgb(15 23 42 / 0.1);
-  --shadow-xl: 0 20px 40px -8px rgb(15 23 42 / 0.12);
+  --shadow-sm: 0 2px 8px -2px rgb(0 0 0 / 0.12);
+  --shadow-md: 0 12px 32px -8px rgb(0 0 0 / 0.24);
+  --shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.24);
+  --shadow-xl: 0 12px 32px -8px rgb(0 0 0 / 0.24);
 }
 
-/* 03 — Type scale */
-@utility text-display-1 {
-  font-family: var(--font-display);
-  font-size: 48px;
-  line-height: 56px;
-  font-weight: 700;
+/* --- Type -----------------------------------------------------------------
+   Inter for everything, mono for anything the learner reads as data:
+   timestamps, durations, counts, labels. In a product whose pitch is linking
+   to an exact second, a tabular timestamp is function, not decoration.
+--------------------------------------------------------------------------- */
+
+@utility text-display {
+  font-size: clamp(2.25rem, 4.4vw, 3.25rem);
+  line-height: 1.06;
+  font-weight: 600;
+  letter-spacing: -0.035em;
 }
 
-@utility text-display-2 {
-  font-family: var(--font-display);
-  font-size: 36px;
-  line-height: 44px;
-  font-weight: 700;
+@utility text-title {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
 @utility text-heading-1 {
-  font-size: 28px;
-  line-height: 36px;
+  font-size: 24px;
+  line-height: 32px;
   font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 @utility text-heading-2 {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 @utility text-heading-3 {
-  font-size: 18px;
-  line-height: 26px;
-  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 @utility text-body-lg {
-  font-size: 16px;
-  line-height: 24px;
+  font-size: 17px;
+  line-height: 26px;
   font-weight: 400;
 }
 
 @utility text-body {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 15px;
+  line-height: 22px;
   font-weight: 400;
 }
 
 @utility text-small {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 400;
 }
 
-/* The diagonal hatch filling the page gutters either side of the frame. */
-@utility bg-hatch {
-  background-image: repeating-linear-gradient(
-    45deg,
-    var(--color-line) 0,
-    var(--color-line) 1px,
-    transparent 1px,
-    transparent 11px
-  );
+/** Section labels, badges, table heads. */
+@utility text-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/** Timestamps, durations, counts. Tabular so a column of them does not jitter. */
+@utility text-data {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 
 body {
-  background: var(--color-neutral-50);
-  color: var(--color-neutral-900);
+  background: var(--canvas);
+  color: var(--ink);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* One focus treatment everywhere, so a keyboard user sees the same ring on a
+   button, a link, a transcript line and a tab. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
 }
