@@ -24,7 +24,7 @@ export function SearchForm({
 }: {
   id: string;
   /** Which surface the search started from, for the `search_initiated` event. */
-  source: "home" | "results";
+  source: "home" | "header" | "results";
   defaultValue?: string;
   variant?: SearchInputVariant;
   label?: string;

@@ -15,7 +15,8 @@
     "check:video": "tsx lib/video.check.mjs",
     "check:ingest": "node studio/scripts/videos/parse.check.mjs",
     "check:keyword": "tsx lib/search/keyword.check.mjs",
-    "check:progress": "tsx lib/progress.check.mjs"
+    "check:progress": "tsx lib/progress.check.mjs",
+    "check:transcript": "tsx lib/transcript.check.mjs"
   },
   "dependencies": {
     "@ai-sdk/mcp": "^2.0.45",

@@ -6,8 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { Play } from "lucide-react";
 import posthog from "posthog-js";
+import { usePlayerControls } from "@/components/lesson/player-context";
 import { saveProgress } from "@/lib/progress-client";
 import { startSecondsFrom, youtubeEmbedUrl } from "@/lib/video";
+import { cn } from "@/lib/utils";
 
 /**
  * Playback stays on the site (AGENTS §7): the poster is a facade, and pressing it
@@ -21,7 +23,8 @@ import { startSecondsFrom, youtubeEmbedUrl } from "@/lib/video";
 
 /** Watch depth is reported at these percentages, each at most once per mount. */
 const MILESTONES = [25, 50, 75, 100] as const;
-const POLL_MS = 5_000;
+/** Also how often the transcript's highlight moves, so it is a second-ish, not a minute. */
+const POLL_MS = 2_000;
 /**
  * How far playback must move before the resume position is written again. The poll runs
  * every 5s but a write every 5s is pointless traffic, and resuming up to 15s early is the
@@ -34,6 +37,8 @@ const IFRAME_API_SRC = "https://www.youtube.com/iframe_api";
 type YouTubePlayer = {
   getCurrentTime: () => number;
   getDuration: () => number;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  playVideo: () => void;
   destroy: () => void;
 };
 declare global {
@@ -88,16 +93,40 @@ export function LessonVideo({
   poster: string | null;
   posterAlt: string;
 }) {
-  const startSeconds = startSecondsFrom(useSearchParams().get("t"));
+  const deepLinkSeconds = startSecondsFrom(useSearchParams().get("t"));
   const { isSignedIn } = useAuth();
+  const { registerSeek, reportPosition } = usePlayerControls();
   const [playing, setPlaying] = useState(false);
+  /** Where the embed starts. `?t=` at first, then wherever a transcript click asks for. */
+  const [startSeconds, setStartSeconds] = useState(deepLinkSeconds);
   const iframe = useRef<HTMLIFrameElement>(null);
+  /** The live player, once the API has attached — what makes a seek instant. */
+  const player = useRef<YouTubePlayer | null>(null);
   /** Last second written to `/api/progress`, so the poll only writes on real movement. */
-  const lastSaved = useRef(startSeconds);
+  const lastSaved = useRef(deepLinkSeconds);
+
+  /**
+   * Publishes the seek. Before playback has started there is no player to seek, so the
+   * click starts it at that second instead — one control, two states.
+   */
+  useEffect(() => {
+    registerSeek((seconds) => {
+      lastSaved.current = seconds;
+      if (player.current) {
+        player.current.seekTo(seconds, true);
+        player.current.playVideo();
+        return;
+      }
+      setStartSeconds(seconds);
+      setPlaying(true);
+    });
+    return () => registerSeek(null);
+  }, [registerSeek]);
 
   /**
    * Watch depth. Polling `getCurrentTime()` is what the IFrame API offers — there is no
-   * progress event — and a 5s tick is fine for quarter-of-a-video milestones.
+   * progress event — and a 2s tick is fine for both the milestones and the transcript
+   * highlight.
    *
    * ponytail: depth is "furthest point reached", not seconds actually watched, so a scrub
    * to the end counts as 100%. Track real coverage only if the drop-off numbers need it.
@@ -108,22 +137,21 @@ export function LessonVideo({
   useEffect(() => {
     if (!playing || !iframe.current) return;
 
-    let player: YouTubePlayer | null = null;
     let timer: ReturnType<typeof setInterval> | null = null;
     let cancelled = false;
     const reported = new Set<number>();
 
     loadIframeApi().then((YT) => {
       if (cancelled || !iframe.current) return;
-      player = new YT.Player(iframe.current, {
+      player.current = new YT.Player(iframe.current, {
         events: {
           onReady: () => {
             // `onReady` can land after cleanup (React runs effects twice in dev), and an
             // interval started then would never be cleared.
             if (cancelled) return;
             timer = setInterval(() => {
-              const duration = player?.getDuration() ?? 0;
-              const position = player?.getCurrentTime() ?? 0;
+              const duration = player.current?.getDuration() ?? 0;
+              const position = player.current?.getCurrentTime() ?? 0;
               if (duration <= 0) return;
               const percent = (position / duration) * 100;
               for (const milestone of MILESTONES) {
@@ -142,6 +170,7 @@ export function LessonVideo({
               }
               // Where the learner actually is, not the second they arrived on.
               const seconds = Math.floor(position);
+              reportPosition(seconds);
               if (isSignedIn && Math.abs(seconds - lastSaved.current) >= SAVE_EVERY_SECONDS) {
                 lastSaved.current = seconds;
                 saveProgress({ lessonId, positionSeconds: seconds });
@@ -159,9 +188,9 @@ export function LessonVideo({
       if (timer) clearInterval(timer);
       // Deliberately no `player.destroy()`: it removes the iframe from the DOM, which is
       // React's node to remove. Clearing the poll is enough — the iframe unmounts with it.
-      player = null;
+      player.current = null;
     };
-  }, [playing, lessonId, lessonSlug, courseSlug, isSignedIn]);
+  }, [playing, lessonId, lessonSlug, courseSlug, isSignedIn, reportPosition]);
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-md border border-line bg-raised">
@@ -199,7 +228,12 @@ export function LessonVideo({
                   resumed: startSeconds > 0,
                 });
               }}
-              className="group absolute inset-0 flex items-center justify-center bg-ink/15 transition-colors hover:bg-ink/5"
+              className={cn(
+                "group absolute inset-0 flex items-center justify-center bg-ink/15",
+                "transition-colors hover:bg-ink/5",
+                // The frame clips overflow, so the shared ring has to be drawn inside it.
+                "focus-visible:-outline-offset-4",
+              )}
             >
               <span className="flex size-16 items-center justify-center rounded-full bg-accent transition-transform group-hover:scale-105">
                 <Play

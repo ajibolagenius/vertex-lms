@@ -106,7 +106,7 @@ function ModuleRow({
           );
         })}
         {lessons.length === 0 && (
-          <p className="py-2 text-body text-ink-muted">{pluralize(0, "lesson")}</p>
+          <li className="py-2 text-body text-ink-muted">{pluralize(0, "lesson")}</li>
         )}
       </ol>
     </details>

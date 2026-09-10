@@ -31,9 +31,17 @@ let inFlight: Promise<ProgressRecord[]> | null = null;
 
 function load(): Promise<ProgressRecord[]> {
   inFlight ??= fetch("/api/progress")
-    .then((response) => (response.ok ? response.json() : { records: [] }))
+    .then((response) => {
+      if (!response.ok) throw new Error(`progress: ${response.status}`);
+      return response.json();
+    })
     .then((data) => (data.records ?? []) as ProgressRecord[])
-    .catch(() => []);
+    .catch(() => {
+      // A failed read is not an answer, so it is not cached: the next mount retries
+      // rather than showing an empty tree for the rest of the session.
+      inFlight = null;
+      return [];
+    });
   return inFlight;
 }
 
@@ -62,7 +70,11 @@ export function useProgress(): Progress | null {
   const [progress, setProgress] = useState<Progress | null>(null);
 
   useEffect(() => {
-    if (!isSignedIn) return;
+    if (!isSignedIn) {
+      // Signing out invalidates the shared read: the next learner is not this one.
+      invalidateProgress();
+      return;
+    }
     let cancelled = false;
     load().then((records) => {
       if (!cancelled) setProgress(shape(records));
@@ -72,5 +84,7 @@ export function useProgress(): Progress | null {
     };
   }, [isSignedIn]);
 
-  return progress;
+  // Derived rather than cleared in the effect, so a sign-out drops the marks on the
+  // same render instead of one behind.
+  return isSignedIn ? progress : null;
 }

@@ -10,7 +10,7 @@ export default async function Home() {
   const courses = await sanityFetch({ query: COURSES_QUERY });
 
   return (
-    <Shell>
+    <Shell showSearch={false}>
       {/* Search-first: the field is the hero, not a marketing block with a field under it. */}
       <section className="border-b border-line py-16 sm:py-24">
         <p className="text-meta text-accent">Intelligent search</p>

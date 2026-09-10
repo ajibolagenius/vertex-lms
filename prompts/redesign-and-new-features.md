@@ -60,7 +60,7 @@ future reference image.
 | muted | `#6B6F76` | `#9A9EA6` |
 | accent | `#5B4BE8` | `#7C6CF7` |
 
-- **No serif.** Playfair is dropped. Inter for everything, plus **JetBrains Mono** for
+- **No serif.** Playfair is dropped. Inter for everything, plus **Space Mono** for
   metadata, timestamps, durations, counts and labels — a mono timestamp is functional in a
   product whose whole pitch is deep-linking to a second, not decoration.
 - **Borders, not shadows.** Shadow tokens shrink to two (`sm` for popovers, `md` for
@@ -135,7 +135,7 @@ authoring UI, semantic search, and any new runtime dependency beyond a Google fo
 - `app/globals.css` — replace the `@theme` block: colour tokens as CSS variables that flip
   per theme, new radius/shadow scale, drop `bg-hatch`, drop the display serif utilities,
   add mono utilities.
-- `app/layout.tsx` — swap Playfair for JetBrains Mono, add the no-flash theme script.
+- `app/layout.tsx` — swap Playfair for Space Mono and Orbitron, add the no-flash theme script.
 - `components/ui/theme-toggle.tsx` (new), added to `components/nav/header-actions.tsx`.
 - `components/ui/*` and `components/brand/logo.tsx` — the primitives *are* the design
   system, so they are restyled here rather than in phase 2: the sheet has to show the new
@@ -163,10 +163,21 @@ authoring UI, semantic search, and any new runtime dependency beyond a Google fo
   `app/search/page.tsx`, `app/my-learning/page.tsx`, sign-in/sign-up (Clerk appearance).
 - Lesson sidebar completion ticks wired to real progress.
 
-### Phase 3 — Transcript panel
-- `sanity/lib/queries.ts` — `VIDEO_BY_URL_QUERY`.
-- `components/lesson/video-player.tsx` — `LessonPlayerProvider` + `seekTo`.
-- `components/lesson/transcript-panel.tsx` (new), rail tab wiring in `lesson-tabs.tsx`.
+### Phase 3 — Transcript panel (done)
+- `sanity/lib/queries.ts` — `VIDEO_BY_URL_QUERY`; `sanity.types.ts` regenerated.
+- `components/lesson/player-context.tsx` (new) — two contexts, stable controls and a
+  ticking position, so registering the player is a one-shot effect.
+- `components/lesson/video-player.tsx` — exposes `seekTo`, reports its position, and the
+  poll drops from 5s to 2s so the highlight tracks the video. A click before playback
+  starts the embed at that second instead of seeking a player that does not exist yet.
+- `components/lesson/transcript-panel.tsx` (new) — filter, chapter headings, click to
+  seek, auto-follow.
+- `lib/transcript.ts` + `lib/transcript.check.mjs` (new, `npm run check:transcript`) —
+  the grouping and active-line logic, out of the component so it is testable.
+- `app/lessons/[slug]/page.tsx` — the rail becomes the third column, wrapping under the
+  other two below `xl`.
+- `app/layout.tsx` — the theme script moved to `next/script` `beforeInteractive`; a raw
+  `<script>` inside a React tree is a console error in React 19.
 
 ### Phase 4 — Ask this lesson
 - `app/api/lesson-qa/route.ts` (new), `lib/lesson-qa/{select,prompt,types}.ts` (new,

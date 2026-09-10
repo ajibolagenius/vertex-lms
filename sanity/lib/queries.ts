@@ -240,3 +240,19 @@ export const PROGRESS_BY_USER_QUERY = defineQuery(/* groq */ `
     }
   }
 `)
+
+/**
+ * The transcript panel's read (AGENTS §9). Keyed by the lesson's `videoUrl` — that
+ * equality is the only join between a lesson and its video document.
+ *
+ * This is the one place a whole `chunks` array is read, and it is read for exactly one
+ * video, to render. It never reaches the model: §12's rule is about what the search route
+ * puts in a prompt, and that path still filters to a few matched chunks.
+ */
+export const VIDEO_BY_URL_QUERY = defineQuery(/* groq */ `
+  *[_type == "video" && url == $url][0] {
+    "id": id,
+    chapters[]{startSeconds, label},
+    chunks[]{startSeconds, text}
+  }
+`)

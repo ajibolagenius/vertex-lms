@@ -54,8 +54,9 @@ export function ResultCard({ result, query }: { result: SearchResult; query: str
               video ? "bg-moment-soft text-moment" : "bg-accent-soft text-accent",
             )}
           >
-            {/* "Moment" only when the data actually carries a second (AGENTS §7). */}
-            {video ? (startSeconds ? "Moment" : "Video") : "Lesson"}
+            {/* "Moment" only when the data carries a second (AGENTS §7) — and second
+                zero is one: a chapter marker at 0:00 is where the topic is introduced. */}
+            {video ? (startSeconds !== null ? "Moment" : "Video") : "Lesson"}
           </span>
         </div>
 
@@ -87,7 +88,9 @@ export function ResultCard({ result, query }: { result: SearchResult; query: str
               <>
                 <Play size={13} aria-hidden="true" className="fill-current" />
                 {/* Never claims a second the data does not have (AGENTS §7). */}
-                {startSeconds ? `Watch from ${formatTimestamp(startSeconds)}` : "Watch lesson"}
+                {startSeconds !== null
+                  ? `Watch from ${formatTimestamp(startSeconds)}`
+                  : "Watch lesson"}
               </>
             ) : (
               <>

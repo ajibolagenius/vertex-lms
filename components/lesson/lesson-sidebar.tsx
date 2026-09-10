@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown } from "lucide-react";
 import { formatDuration } from "@/lib/format";
 import { useProgress } from "@/lib/use-progress";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ export function LessonSidebar({
   return (
     <aside
       className={cn(
-        "w-full shrink-0 border-line lg:w-[290px] lg:border-r",
+        "order-3 w-full shrink-0 border-t border-line lg:order-1 lg:w-[290px] lg:border-t-0 lg:border-r",
         // Its own scroll on desktop, so a long tree never drags the page with it.
         "lg:sticky lg:top-14 lg:max-h-[calc(100vh-3.5rem)] lg:overflow-y-auto",
       )}
@@ -109,7 +109,9 @@ function ModuleBranch({
   const isComplete = lessons.length > 0 && done === lessons.length;
 
   return (
-    <details open={isCurrent}>
+    <details open={isCurrent} className="group/module">
+      {/* `list-none` stays: a flex summary hides the native marker anyway, so the
+          disclosure affordance is the chevron, as on the course page. */}
       <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-3">
         <span className="w-6 shrink-0 text-data text-ink-disabled">
           {String(index + 1).padStart(2, "0")}
@@ -122,6 +124,11 @@ function ModuleBranch({
             {done > 0 ? `${done}/${lessons.length}` : lessons.length}
           </span>
         )}
+        <ChevronDown
+          size={13}
+          aria-hidden="true"
+          className="shrink-0 text-ink-disabled transition-transform group-open/module:rotate-180"
+        />
       </summary>
 
       <ol className="pb-2">

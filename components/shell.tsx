@@ -13,14 +13,17 @@ export function Shell({
   children,
   className,
   bleed = false,
+  showSearch = true,
 }: {
   children: ReactNode;
   className?: string;
   bleed?: boolean;
+  /** The home page turns the header field off — its hero field is the search. */
+  showSearch?: boolean;
 }) {
   return (
     <div className="flex-1">
-      <SiteHeader />
+      <SiteHeader showSearch={showSearch} />
       <main
         className={cn(
           bleed ? "w-full" : "mx-auto w-full max-w-[1240px] px-5 pb-24 sm:px-8",

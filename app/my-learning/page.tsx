@@ -83,7 +83,12 @@ export default async function MyLearningPage() {
               <ProgressBar value={course.percent} className="lg:w-[28%]" />
 
               <div className="min-w-0 lg:ml-auto lg:text-right">
-                {course.resume ? (
+                {/* A course with no resume is not necessarily finished: `resume` is the
+                    newest incomplete record, and a learner who has records for only some
+                    of a course's lessons has neither. Only the percentage can say done. */}
+                {course.percent === 100 ? (
+                  <p className="text-data text-success">Course complete</p>
+                ) : course.resume ? (
                   <ResumeLink
                     href={course.resume.href}
                     title={course.resume.title}
@@ -91,9 +96,7 @@ export default async function MyLearningPage() {
                     courseSlug={course.slug}
                     positionSeconds={course.resume.positionSeconds}
                   />
-                ) : (
-                  <p className="text-data text-success">Course complete</p>
-                )}
+                ) : null}
               </div>
             </li>
           ))}

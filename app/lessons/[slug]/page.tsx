@@ -11,8 +11,10 @@ import {
   SquareArrowOutUpRight,
 } from "lucide-react";
 import { LessonViewTracker, MarkCompleteButton } from "@/components/course-actions";
+import { LessonPlayerProvider } from "@/components/lesson/player-context";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
 import { LessonTabs } from "@/components/lesson/lesson-tabs";
+import { TranscriptPanel } from "@/components/lesson/transcript-panel";
 import { LessonVideo } from "@/components/lesson/video-player";
 import { Breadcrumbs } from "@/components/nav/breadcrumbs";
 import { Shell } from "@/components/shell";
@@ -20,7 +22,11 @@ import { formatCount, formatDuration, formatLevel } from "@/lib/format";
 import { youtubeId } from "@/lib/video";
 import { urlFor } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/fetch";
-import { LESSON_BY_SLUG_QUERY, LESSON_SLUGS_QUERY } from "@/sanity/lib/queries";
+import {
+  LESSON_BY_SLUG_QUERY,
+  LESSON_SLUGS_QUERY,
+  VIDEO_BY_URL_QUERY,
+} from "@/sanity/lib/queries";
 
 type LessonDoc = NonNullable<Awaited<ReturnType<typeof getLesson>>>;
 type NotesBlock = NonNullable<LessonDoc["notes"]>[number];
@@ -126,6 +132,18 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
   const course = lesson.course;
   const modules = course?.modules ?? [];
 
+  /**
+   * The ingested transcript for this lesson's video, joined on the URL (AGENTS §9).
+   * A lesson whose video has not been ingested simply has no rail.
+   */
+  const video = lesson.videoUrl
+    ? await sanityFetch({
+        query: VIDEO_BY_URL_QUERY,
+        params: { url: lesson.videoUrl },
+        tags: ["video"],
+      })
+    : null;
+
   /* A lesson stores no parent (AGENTS §8), so its position comes from the course tree. */
   const flat = modules.flatMap((module, moduleIndex) =>
     (module.lessons ?? []).map((item, lessonIndex) => ({ item, moduleIndex, lessonIndex })),
@@ -171,163 +189,178 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
         />
       </Suspense>
 
-      {/* The workspace. Reversed on small screens so the video comes before the tree.
-          The transcript / ask / quiz rail lands to the right of the article in phase 3. */}
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col-reverse lg:flex-row">
-        {course && (
-          <LessonSidebar
-            course={course}
-            currentLessonId={lesson._id}
-            currentModuleIndex={moduleIndex}
-          />
-        )}
+      {/* The workspace: course tree, lesson, transcript rail. Ordered so a narrow screen
+          gets the lesson first, then the transcript, then the tree. The row wraps, so
+          between lg and xl the full-width rail drops under the other two and only becomes
+          a third column once there is room for three. */}
+      <LessonPlayerProvider>
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col lg:flex-row lg:flex-wrap">
+          {course && (
+            <LessonSidebar
+              course={course}
+              currentLessonId={lesson._id}
+              currentModuleIndex={moduleIndex}
+            />
+          )}
 
-        <article className="min-w-0 flex-1 px-5 pt-6 pb-16 sm:px-8">
-          <Breadcrumbs
-            items={[
-              { label: "Courses", href: "/courses" },
-              ...(course
-                ? [
-                    {
-                      label: course.title ?? "Course",
-                      href: course.slug ? `/courses/${course.slug}` : undefined,
-                    },
-                  ]
-                : []),
-              { label: lesson.title ?? "Lesson" },
-            ]}
-          />
+          <article className="order-1 min-w-0 flex-1 px-5 pt-6 pb-16 sm:px-8 lg:order-2">
+            <Breadcrumbs
+              items={[
+                { label: "Courses", href: "/courses" },
+                ...(course
+                  ? [
+                      {
+                        label: course.title ?? "Course",
+                        href: course.slug ? `/courses/${course.slug}` : undefined,
+                      },
+                    ]
+                  : []),
+                { label: lesson.title ?? "Lesson" },
+              ]}
+            />
 
-          <div className="mt-6 max-w-[880px]">
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-data text-ink-muted">
-              {meta.map((item, index) => (
-                <span key={item} className="flex items-center gap-2">
-                  {index > 0 && (
-                    <span aria-hidden="true" className="text-ink-disabled">
-                      ·
-                    </span>
-                  )}
-                  {item}
-                </span>
-              ))}
-            </p>
+            <div className="mt-6 max-w-[880px]">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-data text-ink-muted">
+                {meta.map((item, index) => (
+                  <span key={item} className="flex items-center gap-2">
+                    {index > 0 && (
+                      <span aria-hidden="true" className="text-ink-disabled">
+                        ·
+                      </span>
+                    )}
+                    {item}
+                  </span>
+                ))}
+              </p>
 
-            <h1 className="mt-3 text-title text-ink">{lesson.title}</h1>
-            {lede && <p className="mt-4 text-body-lg text-ink-muted">{lede}</p>}
-          </div>
+              <h1 className="mt-3 text-title text-ink">{lesson.title}</h1>
+              {lede && <p className="mt-4 text-body-lg text-ink-muted">{lede}</p>}
+            </div>
 
-          <div className="mt-7 max-w-[1000px]">
-            {/* `?t=` is read inside the player, so this route still prerenders. */}
-            <Suspense
-              fallback={<div className="aspect-video w-full rounded-md bg-raised" />}
+            <div className="mt-7 max-w-[1000px]">
+              {/* `?t=` is read inside the player, so this route still prerenders. */}
+              <Suspense
+                fallback={<div className="aspect-video w-full rounded-md bg-raised" />}
+              >
+                <LessonVideo
+                  videoId={youtubeId(lesson.videoUrl)}
+                  title={lesson.title ?? "Lesson video"}
+                  lessonId={lesson._id}
+                  lessonSlug={slug}
+                  courseSlug={course?.slug ?? undefined}
+                  poster={
+                    lesson.thumbnail?.asset
+                      ? urlFor(lesson.thumbnail).width(1216).height(684).fit("crop").url()
+                      : null
+                  }
+                  posterAlt={lesson.thumbnail?.alt ?? ""}
+                />
+              </Suspense>
+            </div>
+
+            <div className="mt-10 max-w-[880px]">
+              <LessonTabs
+                content={
+                  <div className="pt-8">
+                    {overviewBlocks.length > 0 && (
+                      <PortableText value={overviewBlocks} components={notesComponents} />
+                    )}
+
+                    {keyPoints.length > 0 && (
+                      <section className="mt-10 border-t border-line pt-6">
+                        <h2 className="text-meta text-ink-muted">In this lesson you will</h2>
+                        <ul className="mt-4 space-y-2.5">
+                          {keyPoints.map((keyPoint) => (
+                            <li key={keyPoint} className="flex items-start gap-3 text-body text-ink">
+                              <Check
+                                size={15}
+                                aria-hidden="true"
+                                className="mt-1 shrink-0 text-accent"
+                              />
+                              <span>{keyPoint}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    )}
+
+                    {lesson.proTip && (
+                      <div className="mt-8 flex gap-3 rounded-md border border-line bg-raised p-5">
+                        <Lightbulb size={17} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
+                        <div className="min-w-0">
+                          <h3 className="text-meta text-ink-muted">Pro tip</h3>
+                          <p className="mt-2 text-body text-ink">{lesson.proTip}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {resources.length > 0 && (
+                      <section className="mt-10 border-t border-line pt-6">
+                        <h2 className="text-meta text-ink-muted">Resources</h2>
+                        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                          {resources.map((resource) => (
+                            <li key={resource._key}>
+                              <ResourceLink
+                                title={resource.title ?? ""}
+                                description={resource.description ?? ""}
+                                url={resource.url}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    )}
+                  </div>
+                }
+              />
+            </div>
+
+            <nav
+              aria-label="Lesson navigation"
+              className="mt-10 flex flex-wrap items-center gap-3 border-t border-line pt-6"
             >
-              <LessonVideo
-                videoId={youtubeId(lesson.videoUrl)}
-                title={lesson.title ?? "Lesson video"}
+              <MarkCompleteButton
                 lessonId={lesson._id}
                 lessonSlug={slug}
                 courseSlug={course?.slug ?? undefined}
-                poster={
-                  lesson.thumbnail?.asset
-                    ? urlFor(lesson.thumbnail).width(1216).height(684).fit("crop").url()
-                    : null
-                }
-                posterAlt={lesson.thumbnail?.alt ?? ""}
+                moduleIndex={moduleIndex}
               />
-            </Suspense>
-          </div>
 
-          <div className="mt-10 max-w-[880px]">
-            <LessonTabs
-              content={
-                <div className="pt-8">
-                  {overviewBlocks.length > 0 && (
-                    <PortableText value={overviewBlocks} components={notesComponents} />
-                  )}
+              <span className="ml-auto flex flex-wrap items-center gap-3">
+                {previous?.slug && (
+                  <Link
+                    href={`/lessons/${previous.slug}`}
+                    className="inline-flex h-11 max-w-[240px] items-center gap-2 rounded-sm border border-line px-4 text-body text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+                  >
+                    <ArrowLeft size={15} aria-hidden="true" className="shrink-0" />
+                    <span className="truncate">{previous.title}</span>
+                  </Link>
+                )}
+                {next?.slug && (
+                  <Link
+                    href={`/lessons/${next.slug}`}
+                    className="inline-flex h-11 max-w-[280px] items-center gap-2 rounded-sm bg-accent px-4 text-[15px] font-medium text-on-accent transition-colors hover:bg-accent-hover"
+                  >
+                    <span className="truncate">{next.title}</span>
+                    <ArrowRight size={15} aria-hidden="true" className="shrink-0" />
+                  </Link>
+                )}
+              </span>
+            </nav>
+          </article>
 
-                  {keyPoints.length > 0 && (
-                    <section className="mt-10 border-t border-line pt-6">
-                      <h2 className="text-meta text-ink-muted">In this lesson you will</h2>
-                      <ul className="mt-4 space-y-2.5">
-                        {keyPoints.map((keyPoint) => (
-                          <li key={keyPoint} className="flex items-start gap-3 text-body text-ink">
-                            <Check
-                              size={15}
-                              aria-hidden="true"
-                              className="mt-1 shrink-0 text-accent"
-                            />
-                            <span>{keyPoint}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  )}
-
-                  {lesson.proTip && (
-                    <div className="mt-8 flex gap-3 rounded-md border border-line bg-raised p-5">
-                      <Lightbulb size={17} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
-                      <div className="min-w-0">
-                        <h3 className="text-meta text-ink-muted">Pro tip</h3>
-                        <p className="mt-2 text-body text-ink">{lesson.proTip}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {resources.length > 0 && (
-                    <section className="mt-10 border-t border-line pt-6">
-                      <h2 className="text-meta text-ink-muted">Resources</h2>
-                      <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                        {resources.map((resource) => (
-                          <li key={resource._key}>
-                            <ResourceLink
-                              title={resource.title ?? ""}
-                              description={resource.description ?? ""}
-                              url={resource.url}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  )}
-                </div>
-              }
-            />
-          </div>
-
-          <nav
-            aria-label="Lesson navigation"
-            className="mt-10 flex flex-wrap items-center gap-3 border-t border-line pt-6"
-          >
-            <MarkCompleteButton
-              lessonId={lesson._id}
-              lessonSlug={slug}
-              courseSlug={course?.slug ?? undefined}
-              moduleIndex={moduleIndex}
-            />
-
-            <span className="ml-auto flex flex-wrap items-center gap-3">
-              {previous?.slug && (
-                <Link
-                  href={`/lessons/${previous.slug}`}
-                  className="inline-flex h-11 max-w-[240px] items-center gap-2 rounded-sm border border-line px-4 text-body text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
-                >
-                  <ArrowLeft size={15} aria-hidden="true" className="shrink-0" />
-                  <span className="truncate">{previous.title}</span>
-                </Link>
-              )}
-              {next?.slug && (
-                <Link
-                  href={`/lessons/${next.slug}`}
-                  className="inline-flex h-11 max-w-[280px] items-center gap-2 rounded-sm bg-accent px-4 text-[15px] font-medium text-on-accent transition-colors hover:bg-accent-hover"
-                >
-                  <span className="truncate">{next.title}</span>
-                  <ArrowRight size={15} aria-hidden="true" className="shrink-0" />
-                </Link>
-              )}
-            </span>
-          </nav>
-        </article>
-      </div>
+          {video?.chunks?.length ? (
+            <aside className="order-2 flex max-h-[70vh] w-full shrink-0 flex-col border-t border-line lg:order-3 xl:sticky xl:top-14 xl:max-h-[calc(100vh-3.5rem)] xl:w-[380px] xl:border-t-0 xl:border-l">
+              <TranscriptPanel
+                chapters={video.chapters ?? []}
+                chunks={video.chunks}
+                lessonSlug={slug}
+                courseSlug={course?.slug ?? undefined}
+              />
+            </aside>
+          ) : null}
+        </div>
+      </LessonPlayerProvider>
     </Shell>
   );
 }
