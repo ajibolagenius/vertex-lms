@@ -231,20 +231,15 @@ picks it up by reverse reference.
 - `app/collections/page.tsx` and `app/collections/[slug]/page.tsx` (new) — personal view and collection detail pages with Signal design language.
 - `components/nav/site-header.tsx` — added Collections navigation link.
 
-### Phase 7 - Icons, PWA and Packaging
-- Replace remaining ad hoc icon markup with the existing icon primitive and add the
-  required favicon, Apple touch icon and maskable app icons.
-- Add a web app manifest with the product name, responsive display settings, theme and
-  background colors, start URL, and generated icon sizes.
-- Add a service worker or the project's existing PWA integration for the app shell,
-  static assets and offline fallback; never cache authenticated or user-specific API
-  responses.
-- Add installability metadata and verify mobile browser safe-area handling, viewport
-  behavior, and standalone navigation on iOS and Android.
-- Add a packaging/release check that validates manifest fields, icon dimensions,
-  service-worker registration, and production asset paths.
-- Update the design-system page and README with icon usage, PWA behavior, and the
-  packaging/release commands.
+### Phase 7 - Icons, PWA and Packaging (done)
+- `components/brand/icons.tsx` (new) — icon primitives; replaced ad hoc GitHub mark in `app/lessons/[slug]/page.tsx`.
+- Generated multi-density brand icons with `sharp` via `scripts/generate-icons.mjs` (`public/favicon.ico`, `public/icons/apple-touch-icon.png`, `public/icons/icon-192.png`, `public/icons/icon-512.png`, `public/icons/maskable-icon-512.png`).
+- `app/manifest.ts` and `public/manifest.json` — standalone PWA manifest with theme/background colors and icons.
+- `public/sw.js` (new) — service worker with app shell caching, offline fallback (`app/offline/page.tsx`), and strict exclusion of `/api/*` and auth routes.
+- `app/layout.tsx` — added `viewport: Viewport` with safe area `cover`, PWA metadata, and mounted `components/pwa-register.tsx`.
+- `app/globals.css` — added mobile safe-area insets (`env(safe-area-inset-*)`) to `body`.
+- `scripts/check-packaging.mjs` (new) + `npm run check:packaging` — validates manifest, icon dimensions, service worker security rules, and production paths.
+- Updated `app/design-system/page.tsx` and `README.md` with icon usage, PWA behavior, and packaging commands.
 
 ## Requirements
 

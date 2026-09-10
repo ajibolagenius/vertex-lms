@@ -15,7 +15,7 @@ import {
   Timer,
   User,
 } from "lucide-react";
-import { Logo } from "@/components/brand/logo";
+import { GithubIcon, Logo, LogoMark } from "@/components/brand/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button, type ButtonState, type ButtonVariant } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -132,6 +132,8 @@ const radii = [
 const spacing = [4, 8, 12, 16, 24, 32, 48, 64];
 
 const glyphs = [
+  { Icon: LogoMark, name: "LogoMark" },
+  { Icon: GithubIcon, name: "GitHub" },
   { Icon: Search, name: "Search" },
   { Icon: CirclePlay, name: "Play" },
   { Icon: Timer, name: "Moment" },
@@ -391,6 +393,36 @@ export default function DesignSystemPage() {
             and the lesson tree — are built from these tokens and are best read in place on
             the pages themselves.
           </p>
+        </Panel>
+
+        <Panel
+          number="11"
+          title="Packaging & PWA"
+          note="Installable PWA, offline shell, service worker, asset validation."
+        >
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-sm border border-line bg-surface p-4">
+              <p className="text-meta text-ink-muted">Web App Manifest</p>
+              <p className="mt-2 text-heading-3 text-ink">Standalone PWA</p>
+              <p className="mt-1 text-small text-ink-muted">
+                Declared in app/manifest.ts with portrait orientation, Signal theme color (#5B4BE8), and safe area viewport handling.
+              </p>
+            </div>
+            <div className="rounded-sm border border-line bg-surface p-4">
+              <p className="text-meta text-ink-muted">App Icons</p>
+              <p className="mt-2 text-heading-3 text-ink">Multi-density Icons</p>
+              <p className="mt-1 text-small text-ink-muted">
+                180x180 Apple touch icon, 192x192 &amp; 512x512 standard icons, and a 512x512 maskable icon with safe zone.
+              </p>
+            </div>
+            <div className="rounded-sm border border-line bg-surface p-4">
+              <p className="text-meta text-ink-muted">Service Worker</p>
+              <p className="mt-2 text-heading-3 text-ink">Offline Fallback</p>
+              <p className="mt-1 text-small text-ink-muted">
+                Pre-caches app shell and static assets with /offline fallback; never caches authenticated /api/* routes.
+              </p>
+            </div>
+          </div>
         </Panel>
       </div>
     </main>

@@ -11,6 +11,7 @@ import {
   SquareArrowOutUpRight,
 } from "lucide-react";
 import { LessonViewTracker, MarkCompleteButton } from "@/components/course-actions";
+import { GithubIcon } from "@/components/brand/icons";
 import { SaveButton } from "@/components/collections/save-button";
 import { LessonPlayerProvider } from "@/components/lesson/player-context";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
@@ -367,15 +368,6 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
   );
 }
 
-/** The GitHub mark, which lucide does not ship. */
-function GithubMark() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4 fill-current">
-      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
-    </svg>
-  );
-}
-
 function ResourceLink({
   title,
   description,
@@ -394,7 +386,7 @@ function ResourceLink({
       className="flex h-full items-start gap-3 rounded-sm border border-line p-4 transition-colors hover:border-line-strong"
     >
       <span aria-hidden="true" className="mt-0.5 shrink-0 text-ink-muted">
-        {isRepo ? <GithubMark /> : <FileText size={16} />}
+        {isRepo ? <GithubIcon size={16} /> : <FileText size={16} />}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-body text-ink">{title}</span>

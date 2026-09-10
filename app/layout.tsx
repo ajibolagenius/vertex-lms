@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { PostHogIdentify } from "@/components/posthog-identify";
-import type { Metadata } from "next";
+import { PwaRegister } from "@/components/pwa-register";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Inter, Orbitron, Space_Mono } from "next/font/google";
 import "./globals.css";
@@ -26,9 +27,42 @@ const display = Orbitron({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAFAFA" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0C0E" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
-  title: "Vertex",
+  title: {
+    default: "Vertex",
+    template: "%s — Vertex",
+  },
   description: "AI-powered learning platform with intelligent content search.",
+  applicationName: "Vertex",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Vertex",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 /**
@@ -56,6 +90,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <ClerkProvider>
           <PostHogIdentify />
+          <PwaRegister />
           {children}
         </ClerkProvider>
       </body>
