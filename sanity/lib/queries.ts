@@ -256,3 +256,23 @@ export const VIDEO_BY_URL_QUERY = defineQuery(/* groq */ `
     chunks[]{_key, startSeconds, text}
   }
 `)
+
+/**
+ * Everything "ask this lesson" is allowed to reason over (AGENTS §5). One lesson's own
+ * material: its prose as plain text, its key points, and its video's transcript chunks,
+ * joined on `videoUrl` as everywhere else.
+ *
+ * The chunks are read in full here and then cut down to a handful by
+ * `lib/lesson-qa/select.ts` before any of it reaches a prompt — the model never sees the
+ * whole transcript (§12).
+ */
+export const LESSON_QA_CONTEXT_QUERY = defineQuery(/* groq */ `
+  *[_type == "lesson" && _id == $lessonId][0] {
+    _id,
+    title,
+    keyPoints,
+    "notesText": pt::text(notes),
+    "courseTitle": *[_type == "course" && references(^._id)][0].title,
+    "chunks": *[_type == "video" && url == ^.videoUrl][0].chunks[]{startSeconds, text}
+  }
+`)

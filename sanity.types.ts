@@ -623,6 +623,21 @@ export type VIDEO_BY_URL_QUERY_RESULT = {
   }> | null;
 } | null;
 
+// Source: ../sanity/lib/queries.ts
+// Variable: LESSON_QA_CONTEXT_QUERY
+// Query: *[_type == "lesson" && _id == $lessonId][0] {    _id,    title,    keyPoints,    "notesText": pt::text(notes),    "courseTitle": *[_type == "course" && references(^._id)][0].title,    "chunks": *[_type == "video" && url == ^.videoUrl][0].chunks[]{startSeconds, text}  }
+export type LESSON_QA_CONTEXT_QUERY_RESULT = {
+  _id: string;
+  title: string | null;
+  keyPoints: Array<string> | null;
+  notesText: string;
+  courseTitle: string | null;
+  chunks: Array<{
+    startSeconds: number | null;
+    text: string | null;
+  }> | null;
+} | null;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
@@ -637,6 +652,7 @@ declare module "@sanity/client" {
     "\n  *[_type == \"lesson\" && defined(slug.current) && (\n    count($terms[^.title match @ || pt::text(^.notes) match @ || ^.keyPoints[] match @]) > 0 ||\n    count(*[_type == \"video\" && url == ^.videoUrl &&\n      count($terms[^.chapters[].label match @ || ^.chunks[].text match @]) > 0\n    ]) > 0\n  )] {\n    _id,\n    title,\n    \"notesText\": pt::text(notes),\n    \"titleTerms\": $terms[^.title match @],\n    \"keyPointTerms\": $terms[^.keyPoints[] match @],\n    \"notesTerms\": $terms[pt::text(^.notes) match @],\n    \"video\": *[_type == \"video\" && url == ^.videoUrl][0]{\n      \"videoTerms\": $terms[^.chapters[].label match @ || ^.chunks[].text match @],\n      \"chapterMoments\": chapters[count($terms[^.label match @]) > 0][0...3]{startSeconds},\n      \"transcriptMoments\": chunks[count($terms[^.text match @]) > 0][0...3]{startSeconds}\n    }\n  }\n": SEARCH_LESSONS_QUERY_RESULT;
     "\n  *[_type == \"progress\" && userId == $userId] | order(updatedAt desc) {\n    completed,\n    positionSeconds,\n    updatedAt,\n    \"lessonId\": lesson._ref,\n    lesson->{\n      title,\n      \"slug\": slug.current\n    },\n    \"course\": *[_type == \"course\" && references(^.lesson._ref)][0]{\n      title,\n      \"slug\": slug.current,\n      \"lessonIds\": modules[].lessons[]._ref\n    }\n  }\n": PROGRESS_BY_USER_QUERY_RESULT;
     "\n  *[_type == \"video\" && url == $url][0] {\n    \"id\": id,\n    chapters[]{_key, startSeconds, label},\n    chunks[]{_key, startSeconds, text}\n  }\n": VIDEO_BY_URL_QUERY_RESULT;
+    "\n  *[_type == \"lesson\" && _id == $lessonId][0] {\n    _id,\n    title,\n    keyPoints,\n    \"notesText\": pt::text(notes),\n    \"courseTitle\": *[_type == \"course\" && references(^._id)][0].title,\n    \"chunks\": *[_type == \"video\" && url == ^.videoUrl][0].chunks[]{startSeconds, text}\n  }\n": LESSON_QA_CONTEXT_QUERY_RESULT;
   }
 }
 

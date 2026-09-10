@@ -185,10 +185,25 @@ authoring UI, semantic search, and any new runtime dependency beyond a Google fo
   and it says so in the console. A pre-paint inline script therefore belongs in
   `next/script`, which injects it into the initial HTML ahead of any Next.js module.
 
-### Phase 4 — Ask this lesson
-- `app/api/lesson-qa/route.ts` (new), `lib/lesson-qa/{select,prompt,types}.ts` (new,
-  with `select.check.mjs`), `components/lesson/ask-panel.tsx` (new).
+### Phase 4 — Ask this lesson (done)
+- `app/api/lesson-qa/route.ts` (new) — sign-in required, Zod-validated, a 10/min
+  in-memory throttle keyed on the Clerk user, and generic client-facing errors.
+- `lib/lesson-qa/{types,select,prompt}.ts` (new) + `select.check.mjs`
+  (`npm run check:lesson-qa`).
+- `sanity/lib/queries.ts` — `LESSON_QA_CONTEXT_QUERY`; types regenerated.
+- `components/lesson/ask-panel.tsx` and `components/lesson/lesson-rail.tsx` (new) — the
+  rail now carries Transcript / Ask tabs; a lesson with no ingested transcript gets Ask
+  alone.
 - `.env.example` — optional `OPENAI_LESSON_MODEL`.
+
+Two deviations from the plan above, both deliberate:
+- **The answer does not stream.** Citations are validated server-side before anything
+  reaches the browser, which a streamed object cannot offer. A short answer over 20
+  excerpts is a few seconds, and the panel says what it is doing.
+- **Citations are excerpt INDEXES, not seconds.** The route numbers the excerpts it
+  sends and maps the numbers back to real chunk seconds. An index the model invents is
+  out of range and is dropped; a second it invents would look plausible. Grounding by
+  structure rather than by instruction.
 
 ### Phase 5 — Quizzes + streaks
 - `studio/schemaTypes/objects/quiz-question.ts` (new), `documents/lesson.ts` (+`quiz`),

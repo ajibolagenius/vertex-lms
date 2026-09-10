@@ -14,7 +14,7 @@ import { LessonViewTracker, MarkCompleteButton } from "@/components/course-actio
 import { LessonPlayerProvider } from "@/components/lesson/player-context";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
 import { LessonTabs } from "@/components/lesson/lesson-tabs";
-import { TranscriptPanel } from "@/components/lesson/transcript-panel";
+import { LessonRail } from "@/components/lesson/lesson-rail";
 import { LessonVideo } from "@/components/lesson/video-player";
 import { Breadcrumbs } from "@/components/nav/breadcrumbs";
 import { Shell } from "@/components/shell";
@@ -349,16 +349,15 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
             </nav>
           </article>
 
-          {video?.chunks?.length ? (
-            <aside className="order-2 flex max-h-[70vh] w-full shrink-0 flex-col border-t border-line lg:order-3 xl:sticky xl:top-14 xl:max-h-[calc(100vh-3.5rem)] xl:w-[380px] xl:border-t-0 xl:border-l">
-              <TranscriptPanel
-                chapters={video.chapters ?? []}
-                chunks={video.chunks}
-                lessonSlug={slug}
-                courseSlug={course?.slug ?? undefined}
-              />
-            </aside>
-          ) : null}
+          <aside className="order-2 flex max-h-[70vh] w-full shrink-0 flex-col border-t border-line lg:order-3 xl:sticky xl:top-14 xl:max-h-[calc(100vh-3.5rem)] xl:w-[380px] xl:border-t-0 xl:border-l">
+            <LessonRail
+              lessonId={lesson._id}
+              lessonSlug={slug}
+              courseSlug={course?.slug ?? undefined}
+              chapters={video?.chapters ?? []}
+              chunks={video?.chunks ?? []}
+            />
+          </aside>
         </div>
       </LessonPlayerProvider>
     </Shell>

@@ -67,14 +67,8 @@ export function TranscriptPanel({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between gap-3 px-5 py-4">
-        <h2 className="text-meta text-ink-muted">Transcript</h2>
-        <span className="text-data text-ink-disabled">
-          {query ? `${matches.length}/${lines.length}` : lines.length}
-        </span>
-      </div>
-
-      <div className="px-5 pb-4">
+      {/* No heading: the rail tab above already says Transcript. */}
+      <div className="px-5 pt-4 pb-4">
         <div className="relative">
           <Search
             size={14}
@@ -87,8 +81,11 @@ export function TranscriptPanel({
             onChange={(event) => setFilter(event.target.value)}
             placeholder="Find in transcript…"
             aria-label="Find in transcript"
-            className="h-9 w-full rounded-sm border border-line bg-surface pr-3 pl-8 text-[14px] text-ink placeholder:text-ink-disabled hover:border-line-strong focus:border-accent focus:outline-none"
+            className="h-9 w-full rounded-sm border border-line bg-surface pr-16 pl-8 text-[14px] text-ink placeholder:text-ink-disabled hover:border-line-strong focus:border-accent focus:outline-none"
           />
+          <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-data text-ink-disabled">
+            {query ? `${matches.length}/${lines.length}` : lines.length}
+          </span>
         </div>
       </div>
 
@@ -122,6 +119,7 @@ export function TranscriptPanel({
                         lesson_slug: lessonSlug,
                         course_slug: courseSlug,
                         seconds: line.seconds,
+                        source: "transcript",
                         from_search: Boolean(query),
                       });
                     }}
