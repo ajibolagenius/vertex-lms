@@ -608,14 +608,16 @@ export type PROGRESS_BY_USER_QUERY_RESULT = Array<{
 
 // Source: ../sanity/lib/queries.ts
 // Variable: VIDEO_BY_URL_QUERY
-// Query: *[_type == "video" && url == $url][0] {    "id": id,    chapters[]{startSeconds, label},    chunks[]{startSeconds, text}  }
+// Query: *[_type == "video" && url == $url][0] {    "id": id,    chapters[]{_key, startSeconds, label},    chunks[]{_key, startSeconds, text}  }
 export type VIDEO_BY_URL_QUERY_RESULT = {
   id: string | null;
   chapters: Array<{
+    _key: string;
     startSeconds: number | null;
     label: string | null;
   }> | null;
   chunks: Array<{
+    _key: string;
     startSeconds: number | null;
     text: string | null;
   }> | null;
@@ -634,7 +636,7 @@ declare module "@sanity/client" {
     "\n  *[_type == \"lesson\" && _id in $ids] {\n    \n  _id,\n  _createdAt,\n  title,\n  \"slug\": slug.current,\n  duration,\n  videoUrl,\n  keyPoints,\n  \"thumbnailRef\": thumbnail.asset._ref,\n  \"course\": *[_type == \"course\" && references(^._id)][0]{\n    title,\n    \"slug\": slug.current,\n    \"iconRef\": coverImage.asset._ref,\n    modules[]{\n      title,\n      \"lessonIds\": lessons[]._ref\n    }\n  }\n\n  }\n": LESSONS_BY_IDS_QUERY_RESULT;
     "\n  *[_type == \"lesson\" && defined(slug.current) && (\n    count($terms[^.title match @ || pt::text(^.notes) match @ || ^.keyPoints[] match @]) > 0 ||\n    count(*[_type == \"video\" && url == ^.videoUrl &&\n      count($terms[^.chapters[].label match @ || ^.chunks[].text match @]) > 0\n    ]) > 0\n  )] {\n    _id,\n    title,\n    \"notesText\": pt::text(notes),\n    \"titleTerms\": $terms[^.title match @],\n    \"keyPointTerms\": $terms[^.keyPoints[] match @],\n    \"notesTerms\": $terms[pt::text(^.notes) match @],\n    \"video\": *[_type == \"video\" && url == ^.videoUrl][0]{\n      \"videoTerms\": $terms[^.chapters[].label match @ || ^.chunks[].text match @],\n      \"chapterMoments\": chapters[count($terms[^.label match @]) > 0][0...3]{startSeconds},\n      \"transcriptMoments\": chunks[count($terms[^.text match @]) > 0][0...3]{startSeconds}\n    }\n  }\n": SEARCH_LESSONS_QUERY_RESULT;
     "\n  *[_type == \"progress\" && userId == $userId] | order(updatedAt desc) {\n    completed,\n    positionSeconds,\n    updatedAt,\n    \"lessonId\": lesson._ref,\n    lesson->{\n      title,\n      \"slug\": slug.current\n    },\n    \"course\": *[_type == \"course\" && references(^.lesson._ref)][0]{\n      title,\n      \"slug\": slug.current,\n      \"lessonIds\": modules[].lessons[]._ref\n    }\n  }\n": PROGRESS_BY_USER_QUERY_RESULT;
-    "\n  *[_type == \"video\" && url == $url][0] {\n    \"id\": id,\n    chapters[]{startSeconds, label},\n    chunks[]{startSeconds, text}\n  }\n": VIDEO_BY_URL_QUERY_RESULT;
+    "\n  *[_type == \"video\" && url == $url][0] {\n    \"id\": id,\n    chapters[]{_key, startSeconds, label},\n    chunks[]{_key, startSeconds, text}\n  }\n": VIDEO_BY_URL_QUERY_RESULT;
   }
 }
 

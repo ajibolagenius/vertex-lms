@@ -252,7 +252,7 @@ export const PROGRESS_BY_USER_QUERY = defineQuery(/* groq */ `
 export const VIDEO_BY_URL_QUERY = defineQuery(/* groq */ `
   *[_type == "video" && url == $url][0] {
     "id": id,
-    chapters[]{startSeconds, label},
-    chunks[]{startSeconds, text}
+    chapters[]{_key, startSeconds, label},
+    chunks[]{_key, startSeconds, text}
   }
 `)

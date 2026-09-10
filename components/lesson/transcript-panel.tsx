@@ -60,7 +60,7 @@ export function TranscriptPanel({
 
   // Filtering flattens the list: a chapter heading over a single stray match is noise.
   const groups = query
-    ? [{ label: null, seconds: 0, lines: matches }]
+    ? [{ key: "matches", label: null, seconds: 0, lines: matches }]
     : groupByChapter(chapters, lines);
 
   const active = activeLineSeconds(lines, position);
@@ -99,7 +99,7 @@ export function TranscriptPanel({
           </p>
         ) : (
           groups.map((entry) => (
-            <section key={`${entry.label ?? "lead"}-${entry.seconds}`}>
+            <section key={entry.key}>
               {entry.label && (
                 <h3 className="sticky top-0 z-10 flex items-baseline gap-2 bg-canvas/95 px-5 py-2 backdrop-blur">
                   <span className="text-data text-ink-disabled">
@@ -111,7 +111,7 @@ export function TranscriptPanel({
               <ol>
                 {entry.lines.map((line) => (
                   <TranscriptLine
-                    key={line.seconds}
+                    key={line.key}
                     line={line}
                     query={query}
                     isActive={line.seconds === active}

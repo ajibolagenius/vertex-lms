@@ -5,21 +5,22 @@
  * No `@/` aliases and no React, so `transcript.check.mjs` runs it under plain tsx.
  */
 
-export type Chunk = { startSeconds: number | null; text: string | null };
-export type Chapter = { startSeconds: number | null; label: string | null };
+export type Chunk = { _key: string; startSeconds: number | null; text: string | null };
+export type Chapter = { _key: string; startSeconds: number | null; label: string | null };
 
-export type Line = { seconds: number; text: string };
+/** `key` is the array member's own `_key`: two chunks may share a second, ids never. */
+export type Line = { key: string; seconds: number; text: string };
 /** A chapter and the lines under it. `label: null` is the run before the first chapter. */
-export type Group = { label: string | null; seconds: number; lines: Line[] };
+export type Group = { key: string; label: string | null; seconds: number; lines: Line[] };
 
 /** Drops anything the ingestion left incomplete, and orders by time. */
 export function toLines(chunks: Chunk[]): Line[] {
   return chunks
     .filter(
-      (chunk): chunk is { startSeconds: number; text: string } =>
+      (chunk): chunk is Chunk & { startSeconds: number; text: string } =>
         typeof chunk.startSeconds === "number" && Boolean(chunk.text),
     )
-    .map((chunk) => ({ seconds: chunk.startSeconds, text: chunk.text }))
+    .map((chunk) => ({ key: chunk._key, seconds: chunk.startSeconds, text: chunk.text }))
     .sort((a, b) => a.seconds - b.seconds);
 }
 
@@ -33,20 +34,21 @@ export function toLines(chunks: Chunk[]): Line[] {
 export function groupByChapter(chapters: Chapter[], lines: Line[]): Group[] {
   const marks = chapters
     .filter(
-      (chapter): chapter is { startSeconds: number; label: string } =>
+      (chapter): chapter is Chapter & { startSeconds: number; label: string } =>
         typeof chapter.startSeconds === "number" && Boolean(chapter.label),
     )
     .sort((a, b) => a.startSeconds - b.startSeconds);
 
-  if (!marks.length) return lines.length ? [{ label: null, seconds: 0, lines }] : [];
+  if (!marks.length) return lines.length ? [{ key: "all", label: null, seconds: 0, lines }] : [];
 
   const groups: Group[] = marks.map((mark) => ({
+    key: mark._key,
     label: mark.label,
     seconds: mark.startSeconds,
     lines: [],
   }));
   // Anything before the first marker still has to go somewhere.
-  const lead: Group = { label: null, seconds: 0, lines: [] };
+  const lead: Group = { key: "lead", label: null, seconds: 0, lines: [] };
 
   for (const line of lines) {
     let index = -1;

@@ -71,8 +71,10 @@ future reference image.
   - Home: search-first. A large query field with example queries is the hero; the marketing
     paragraph shrinks to one line. Courses below as a dense grid.
   - Catalog: filter rail (category, level) + result grid, mono metadata row per card.
-  - Lesson: three-column workspace — course tree | video + notes | **right rail** carrying
-    the transcript / ask / quiz tabs (phases 3–5). Collapses to stacked on mobile.
+  - Lesson: a workspace rather than an article — course tree | video + notes | **right
+    rail** carrying the transcript / ask / quiz panels. Phase 2 builds the first two
+    columns; the rail arrives with its first occupant in phase 3, and phase 3 is the
+    authoritative description of the final layout. Stacks on mobile.
   - Search: results keep their two card kinds, restyled; sort control moves inline with
     the count.
 
@@ -159,7 +161,8 @@ authoring UI, semantic search, and any new runtime dependency beyond a Google fo
 - The lesson page is a two-column workspace (tree + article); the transcript/ask/quiz
   rail is added as the third column in phase 3 rather than shipped empty here.
 - `app/page.tsx` (search-first hero), `app/courses/page.tsx` + filter rail,
-  `app/courses/[slug]/page.tsx`, `app/lessons/[slug]/page.tsx` (three-column shell),
+  `app/courses/[slug]/page.tsx`, `app/lessons/[slug]/page.tsx` (two-column workspace —
+  the third column is phase 3's, see below),
   `app/search/page.tsx`, `app/my-learning/page.tsx`, sign-in/sign-up (Clerk appearance).
 - Lesson sidebar completion ticks wired to real progress.
 
@@ -176,8 +179,11 @@ authoring UI, semantic search, and any new runtime dependency beyond a Google fo
   the grouping and active-line logic, out of the component so it is testable.
 - `app/lessons/[slug]/page.tsx` — the rail becomes the third column, wrapping under the
   other two below `xl`.
-- `app/layout.tsx` — the theme script moved to `next/script` `beforeInteractive`; a raw
-  `<script>` inside a React tree is a console error in React 19.
+- `app/layout.tsx` — the theme script moved to `next/script` with `id="vertex-theme"` and
+  `strategy="beforeInteractive"` (Next 16.3.4). React 19 renders built-in `<script>`
+  elements perfectly well; what it does not do is execute one rendered on the client,
+  and it says so in the console. A pre-paint inline script therefore belongs in
+  `next/script`, which injects it into the initial HTML ahead of any Next.js module.
 
 ### Phase 4 — Ask this lesson
 - `app/api/lesson-qa/route.ts` (new), `lib/lesson-qa/{select,prompt,types}.ts` (new,

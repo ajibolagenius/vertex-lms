@@ -111,7 +111,10 @@ export function LessonVideo({
    */
   useEffect(() => {
     registerSeek((seconds) => {
-      lastSaved.current = seconds;
+      // `lastSaved` deliberately untouched: nothing has been written yet, and moving it
+      // here would tell the poll this second was already saved. Left alone, the next
+      // tick sees a jump well past SAVE_EVERY_SECONDS and persists the new position,
+      // after which the normal threshold applies again.
       if (player.current) {
         player.current.seekTo(seconds, true);
         player.current.playVideo();
