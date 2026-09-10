@@ -1,114 +1,92 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
-import { ArrowLeft, ChevronDown, CircleCheck, Play } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { formatDuration } from "@/lib/format";
+import { useProgress } from "@/lib/use-progress";
 import { cn } from "@/lib/utils";
 import type { LESSON_BY_SLUG_QUERY_RESULT } from "@/sanity.types";
-import { urlFor } from "@/sanity/lib/image";
 
 type CourseDoc = NonNullable<NonNullable<LESSON_BY_SLUG_QUERY_RESULT>["course"]>;
 
 /**
- * The course tree beside the lesson. Only the module holding the current lesson is
- * expanded, but every module is a native `<details>` so the tree works without JS.
+ * The course tree beside the lesson. Every module is a native `<details>`, so the tree
+ * works before hydration; only the module holding the current lesson starts open.
  *
- * `completedLessonIds` is empty until the Clerk-keyed progress record exists
- * (AGENTS §7) — the ticks and the percentage derive from it, so wiring the real
- * record later touches this one prop.
+ * The ticks and the percentage come from the learner's own progress, read client-side so
+ * the lesson route stays prerendered (see `lib/use-progress.ts`).
  */
 export function LessonSidebar({
   course,
   currentLessonId,
   currentModuleIndex,
-  completedLessonIds,
 }: {
   course: CourseDoc;
   currentLessonId: string;
   currentModuleIndex: number;
-  completedLessonIds: string[];
 }) {
+  const progress = useProgress();
+  const completed = progress?.completed ?? new Set<string>();
+
   const modules = course.modules ?? [];
   const lessonIds = modules.flatMap((m) => (m.lessons ?? []).map((l) => l._id));
-  const completed = new Set(completedLessonIds);
-  const percent = lessonIds.length
-    ? Math.round((lessonIds.filter((id) => completed.has(id)).length / lessonIds.length) * 100)
-    : 0;
+  const doneCount = lessonIds.filter((id) => completed.has(id)).length;
+  const percent = lessonIds.length ? Math.round((doneCount / lessonIds.length) * 100) : 0;
 
   return (
-    <aside className="w-full shrink-0 border-t border-line lg:w-[278px] lg:border-t-0 lg:border-r">
-      <div className="px-6 py-8 sm:px-10">
+    <aside
+      className={cn(
+        "w-full shrink-0 border-line lg:w-[290px] lg:border-r",
+        // Its own scroll on desktop, so a long tree never drags the page with it.
+        "lg:sticky lg:top-14 lg:max-h-[calc(100vh-3.5rem)] lg:overflow-y-auto",
+      )}
+    >
+      <div className="border-b border-line px-5 py-5">
         {course.slug && (
           <Link
             href={`/courses/${course.slug}`}
-            className="inline-flex items-center gap-3 font-display text-[15px] leading-[22px] font-semibold text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+            className="inline-flex items-center gap-2 text-data text-ink-muted transition-colors hover:text-ink"
           >
-            <ArrowLeft size={16} aria-hidden="true" />
+            <ArrowLeft size={14} aria-hidden="true" />
             Back to course
           </Link>
         )}
-
-        <div className="mt-7 flex items-start gap-4">
-          {course.coverImage?.asset && (
-            <Image
-              src={urlFor(course.coverImage).width(100).height(100).fit("crop").url()}
-              alt=""
-              width={50}
-              height={50}
-              className="size-[50px] shrink-0 rounded-md object-cover"
+        <p className="mt-4 text-heading-3 text-ink">{course.title}</p>
+        {progress && (
+        <div className="mt-3 flex items-center gap-3">
+          <span
+            role="progressbar"
+            aria-label="Course progress"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            className="h-1 flex-1 overflow-hidden rounded-full bg-raised"
+          >
+            <span
+              className="block h-full rounded-full bg-accent"
+              style={{ width: `${percent}%` }}
             />
-          )}
-          <div className="min-w-0">
-            <p className="text-[15px] leading-[20px] font-semibold text-neutral-900">
-              {course.title}
-            </p>
-            <p className="mt-1.5 text-[13px] leading-[18px] text-neutral-500">
-              {percent}% complete
-            </p>
-            <div
-              role="progressbar"
-              aria-label="Course progress"
-              aria-valuenow={percent}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              className="mt-2 h-1 w-[70px] overflow-hidden rounded-full bg-neutral-200"
-            >
-              <div className="h-full rounded-full bg-primary-500" style={{ width: `${percent}%` }} />
-            </div>
-          </div>
+          </span>
+          <span className="text-data text-ink-muted">
+            {doneCount}/{lessonIds.length}
+          </span>
         </div>
+        )}
       </div>
 
-      <details open className="border-t border-line">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-4 text-[15px] leading-[22px] text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-500 sm:px-7">
-          Module {currentModuleIndex + 1} of {modules.length}
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            className="shrink-0 text-primary-500"
-          />
-        </summary>
-
-        {/* One connector for the whole tree: it runs behind the markers, from the
-            first circle's centre to the last row's. Each circle is opaque, so it
-            reads as a line threading them (the lesson dots are hollow by design). */}
-        <ol className="relative border-t border-line">
-          <span
-            aria-hidden="true"
-            className="absolute top-8 bottom-8 left-[42px] w-px bg-line"
-          />
-          {modules.map((module, index) => (
-            <li key={module._key} className="border-line not-first:border-t">
-              <ModuleBranch
-                module={module}
-                index={index}
-                isCurrent={index === currentModuleIndex}
-                currentLessonId={currentLessonId}
-                completed={completed}
-              />
-            </li>
-          ))}
-        </ol>
-      </details>
+      <ol className="pb-8">
+        {modules.map((module, index) => (
+          <li key={module._key} className="border-b border-line">
+            <ModuleBranch
+              module={module}
+              index={index}
+              isCurrent={index === currentModuleIndex}
+              currentLessonId={currentLessonId}
+              completed={completed}
+            />
+          </li>
+        ))}
+      </ol>
     </aside>
   );
 }
@@ -127,46 +105,31 @@ function ModuleBranch({
   completed: Set<string>;
 }) {
   const lessons = module.lessons ?? [];
-  const isComplete = lessons.length > 0 && lessons.every((lesson) => completed.has(lesson._id));
+  const done = lessons.filter((lesson) => completed.has(lesson._id)).length;
+  const isComplete = lessons.length > 0 && done === lessons.length;
 
   return (
-    <details open={isCurrent} className={cn("group/module", isCurrent && "bg-primary-100/30")}>
-      <summary className="flex cursor-pointer list-none items-center gap-4 py-[18px] pr-5 pl-7 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-500">
-        <span
-          aria-hidden="true"
-          className={cn(
-            "relative flex size-7 shrink-0 items-center justify-center rounded-full text-[15px]",
-            isCurrent
-              ? "bg-primary-500 font-semibold text-white"
-              : "border border-line bg-paper text-neutral-900",
-          )}
-        >
-          {index + 1}
+    <details open={isCurrent}>
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-3">
+        <span className="w-6 shrink-0 text-data text-ink-disabled">
+          {String(index + 1).padStart(2, "0")}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[15px] leading-[22px] font-semibold text-neutral-900">
-            {module.title}
-          </span>
-          <span className="mt-1 block text-[13px] leading-[18px] text-neutral-500">
-            {formatDuration(module.duration)}
-          </span>
-        </span>
+        <span className="min-w-0 flex-1 text-body text-ink">{module.title}</span>
         {isComplete ? (
-          <CircleCheck size={18} aria-hidden="true" className="shrink-0 text-primary-500" />
+          <Check size={14} aria-hidden="true" className="shrink-0 text-success" />
         ) : (
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            className="shrink-0 text-primary-500 transition-transform group-open/module:rotate-180"
-          />
+          <span className="shrink-0 text-data text-ink-disabled">
+            {done > 0 ? `${done}/${lessons.length}` : lessons.length}
+          </span>
         )}
       </summary>
 
-      <ol className="pb-6">
-        {lessons.map((lesson) => (
+      <ol className="pb-2">
+        {lessons.map((lesson, lessonIndex) => (
           <li key={lesson._id}>
             <LessonRow
               lesson={lesson}
+              label={`${index + 1}.${lessonIndex + 1}`}
               isCurrent={lesson._id === currentLessonId}
               isComplete={completed.has(lesson._id)}
             />
@@ -179,70 +142,54 @@ function ModuleBranch({
 
 function LessonRow({
   lesson,
+  label,
   isCurrent,
   isComplete,
 }: {
   lesson: NonNullable<NonNullable<CourseDoc["modules"]>[number]["lessons"]>[number];
+  label: string;
   isCurrent: boolean;
   isComplete: boolean;
 }) {
   const body = (
     <>
-      <span aria-hidden="true" className="flex w-7 shrink-0 justify-center pt-[7px]">
-        <span
-          className={cn(
-            "size-2 rounded-full border",
-            isCurrent || isComplete
-              ? "border-primary-500 bg-primary-500"
-              : "border-primary-200 bg-transparent",
-          )}
-        />
+      <span
+        className={cn(
+          "w-6 shrink-0 text-data",
+          isCurrent ? "text-accent" : "text-ink-disabled",
+        )}
+      >
+        {label}
       </span>
-      <span className="min-w-0 flex-1">
-        <span
-          className={cn(
-            "block text-[15px] leading-[22px]",
-            isCurrent
-              ? "font-semibold text-neutral-900"
-              : "text-neutral-700 group-hover/lesson:text-primary-500",
-          )}
-        >
-          {lesson.title}
-        </span>
-        <span
-          className={cn(
-            "mt-1 block text-[13px] leading-[18px]",
-            isCurrent ? "font-semibold text-primary-500" : "text-neutral-500",
-          )}
-        >
-          {isCurrent ? "Now playing" : formatDuration(lesson.duration)}
-        </span>
+      <span
+        className={cn(
+          "min-w-0 flex-1 text-body",
+          isCurrent ? "text-ink" : "text-ink-muted",
+        )}
+      >
+        {lesson.title}
       </span>
-      {isCurrent && (
-        <span
-          aria-hidden="true"
-          className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-primary-500"
-        >
-          <Play size={12} className="ml-0.5 fill-white text-white" />
+      {isComplete ? (
+        <Check size={13} aria-hidden="true" className="shrink-0 text-success" />
+      ) : (
+        <span className="shrink-0 text-data text-ink-disabled">
+          {formatDuration(lesson.duration)}
         </span>
       )}
     </>
   );
 
-  const row = "flex items-start gap-4 py-2 pr-5 pl-7";
+  const row = "flex items-center gap-3 px-5 py-2 transition-colors";
 
   return isCurrent || !lesson.slug ? (
-    <div aria-current={isCurrent ? "page" : undefined} className={row}>
+    <div
+      aria-current={isCurrent ? "page" : undefined}
+      className={cn(row, isCurrent && "border-l-2 border-accent bg-raised pl-[18px]")}
+    >
       {body}
     </div>
   ) : (
-    <Link
-      href={`/lessons/${lesson.slug}`}
-      className={cn(
-        row,
-        "group/lesson focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-500",
-      )}
-    >
+    <Link href={`/lessons/${lesson.slug}`} className={cn(row, "hover:bg-raised")}>
       {body}
     </Link>
   );

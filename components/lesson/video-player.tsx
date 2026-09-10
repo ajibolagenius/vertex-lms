@@ -164,7 +164,7 @@ export function LessonVideo({
   }, [playing, lessonId, lessonSlug, courseSlug, isSignedIn]);
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-md bg-neutral-900">
+    <div className="relative aspect-video w-full overflow-hidden rounded-md border border-line bg-raised">
       {playing && videoId ? (
         <iframe
           ref={iframe}
@@ -183,7 +183,7 @@ export function LessonVideo({
               fill
               priority
               sizes="(min-width: 1024px) 608px, 100vw"
-              className="object-cover opacity-80"
+              className="object-cover"
             />
           )}
           {videoId && (
@@ -199,10 +199,14 @@ export function LessonVideo({
                   resumed: startSeconds > 0,
                 });
               }}
-              className="absolute inset-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-primary-500"
+              className="group absolute inset-0 flex items-center justify-center bg-ink/15 transition-colors hover:bg-ink/5"
             >
-              <span className="flex size-[72px] items-center justify-center rounded-full bg-primary-500 shadow-lg transition-transform hover:scale-105">
-                <Play size={28} aria-hidden="true" className="ml-1 fill-white text-white" />
+              <span className="flex size-16 items-center justify-center rounded-full bg-accent transition-transform group-hover:scale-105">
+                <Play
+                  size={24}
+                  aria-hidden="true"
+                  className="ml-1 fill-on-accent text-on-accent"
+                />
               </span>
             </button>
           )}

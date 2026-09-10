@@ -1,7 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { PostHogIdentify } from "@/components/posthog-identify";
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, Orbitron, Space_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -10,8 +10,18 @@ const inter = Inter({
 });
 
 /** Timestamps, durations and labels. See the type notes in globals.css. */
-const mono = JetBrains_Mono({
+const mono = Space_Mono({
   variable: "--font-mono-face",
+  weight: ["400", "700"],
+  subsets: ["latin"],
+});
+
+/**
+ * The display face, and deliberately rationed: the wordmark and the page hero only.
+ * Orbitron is a costume at paragraph length — Inter still carries every heading.
+ */
+const display = Orbitron({
+  variable: "--font-display-face",
   subsets: ["latin"],
 });
 
@@ -33,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${mono.variable} h-full antialiased`}
+      className={`${inter.variable} ${mono.variable} ${display.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

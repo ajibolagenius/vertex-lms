@@ -12,29 +12,20 @@ export function Navbar({
   className?: string;
 }) {
   return (
-    <nav
-      aria-label="Main"
-      className={cn("flex flex-wrap items-center gap-8", className)}
-    >
+    <nav aria-label="Main" className={cn("flex items-center gap-5 sm:gap-8", className)}>
       {/* Named here because the wordmark is hidden below `sm` and the mark is decorative. */}
-      <Link
-        href="/"
-        aria-label="Vertex home"
-        className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-      >
-        <Logo size={24} />
+      <Link href="/" aria-label="Vertex home">
+        <Logo size={22} />
       </Link>
-      <ul className="flex items-center gap-6">
+      <ul className="flex items-center gap-4 sm:gap-5">
         {items.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
               aria-current={item.active ? "page" : undefined}
               className={cn(
-                "text-[14px] leading-[20px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
-                item.active
-                  ? "text-primary-500"
-                  : "text-neutral-900 hover:text-primary-500",
+                "block whitespace-nowrap text-[14px] leading-5 transition-colors",
+                item.active ? "text-ink" : "text-ink-muted hover:text-ink",
               )}
             >
               {item.label}

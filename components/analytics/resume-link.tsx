@@ -33,10 +33,10 @@ export function ResumeLink({
           source: "my_learning",
         })
       }
-      className="inline-flex items-center gap-2 text-[15px] leading-[22px] font-semibold text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+      className="inline-flex max-w-full items-center gap-2 text-body text-accent hover:text-accent-hover"
     >
       <span className="truncate">Continue: {title}</span>
-      <ArrowRight size={18} aria-hidden="true" className="shrink-0" />
+      <ArrowRight size={16} aria-hidden="true" className="shrink-0" />
     </Link>
   );
 }

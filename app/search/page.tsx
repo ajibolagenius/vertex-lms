@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { ChartDecoration } from "@/components/decor/chart-decoration";
-import { SiteHeader } from "@/components/nav/site-header";
+import { Shell } from "@/components/shell";
 import { SearchResults } from "@/components/search/search-results";
 
 export const metadata: Metadata = {
@@ -20,34 +19,17 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
   const query = (Array.isArray(raw) ? raw[0] : raw)?.trim() ?? "";
 
   return (
-    <div className="flex-1 bg-hatch px-0 sm:px-8">
-      <div className="mx-auto w-full max-w-[1440px] border-x border-line bg-paper">
-        <SiteHeader />
+    <Shell>
+      <header className="border-b border-line pt-12 pb-8">
+        <p className="text-meta text-ink-muted">Results</p>
+        <h1 className="mt-3 text-title text-ink">
+          {query ? <span className="break-words">{query}</span> : "What do you want to learn?"}
+        </h1>
+      </header>
 
-        <main className="px-6 pt-14 pb-8 sm:px-12">
-          <div className="text-center">
-            <span className="inline-flex h-8 items-center rounded-md bg-primary-100 px-3 text-[12px] font-semibold tracking-[0.16em] text-primary-500 uppercase">
-              Search Results
-            </span>
-
-            <h1 className="mt-6 font-display text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.2] text-black">
-              {query ? (
-                <>
-                  Results for <span className="text-primary-500">&ldquo;{query}&rdquo;</span>
-                </>
-              ) : (
-                "What do you want to learn?"
-              )}
-            </h1>
-          </div>
-
-          <Suspense>
-            <SearchResults />
-          </Suspense>
-        </main>
-
-        <ChartDecoration className="mt-8" />
-      </div>
-    </div>
+      <Suspense>
+        <SearchResults />
+      </Suspense>
+    </Shell>
   );
 }

@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { ArrowRight, Bookmark, CircleCheck } from "lucide-react";
-import { ButtonLink } from "@/components/ui/button";
+import { Check } from "lucide-react";
 import { saveProgress } from "@/lib/progress-client";
+import { invalidateProgress, useProgress } from "@/lib/use-progress";
 import { startSecondsFrom } from "@/lib/video";
+import { cn } from "@/lib/utils";
 import posthog from "posthog-js";
 
 export function CourseViewTracker({
@@ -31,31 +32,6 @@ export function CourseViewTracker({
   }, []);
 
   return null;
-}
-
-export function BookmarkButton() {
-  return (
-    <button
-      type="button"
-      className="inline-flex h-[56px] items-center gap-3 rounded-md border border-line bg-surface px-6 text-[16px] font-medium text-neutral-900 hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-      onClick={() => posthog.capture("course_bookmarked")}
-    >
-      <Bookmark size={18} aria-hidden="true" />
-      Bookmark
-    </button>
-  );
-}
-
-export function ContinueLearningButton({ href }: { href: string }) {
-  return (
-    // Wrap in a span to capture the click without modifying ButtonLink's props
-    <span onClick={() => posthog.capture("course_started")}>
-      <ButtonLink href={href} size="xl" className="h-[56px] px-7">
-        Continue Learning
-        <ArrowRight size={18} aria-hidden="true" />
-      </ButtonLink>
-    </span>
-  );
 }
 
 /**
@@ -102,15 +78,16 @@ export function LessonViewTracker({
 
   useEffect(() => {
     if (!isSignedIn) return;
-    saveProgress({ lessonId });
+    saveProgress({ lessonId }).then(invalidateProgress);
   }, [isSignedIn, lessonId]);
 
   return null;
 }
 
 /**
- * Completion is explicit (AGENTS §7): the learner says so. The lesson page is prerendered, so
- * the current state is read from the API on mount rather than rendered into the HTML.
+ * Completion is explicit (AGENTS §7): the learner says so. The lesson page is prerendered,
+ * so the current state comes from the shared client-side progress read rather than from
+ * the HTML.
  */
 export function MarkCompleteButton({
   lessonId,
@@ -124,30 +101,14 @@ export function MarkCompleteButton({
   moduleIndex: number;
 }) {
   const { isSignedIn } = useAuth();
-  const [completed, setCompleted] = useState<boolean | null>(null);
+  const progress = useProgress();
+  /** Set once the learner clicks; before that the shared read is the truth. */
+  const [override, setOverride] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!isSignedIn) return;
-    let cancelled = false;
-    fetch("/api/progress")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (cancelled || !data) return;
-        const record = data.lessons?.find(
-          (entry: { lessonId: string }) => entry.lessonId === lessonId,
-        );
-        setCompleted(Boolean(record?.completed));
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [isSignedIn, lessonId]);
 
   if (!isSignedIn) return null;
 
-  const isComplete = completed === true;
+  const isComplete = override ?? Boolean(progress?.completed.has(lessonId));
 
   return (
     <button
@@ -160,23 +121,25 @@ export function MarkCompleteButton({
         const ok = await saveProgress({ lessonId, completed: next });
         setSaving(false);
         if (!ok) return;
-        setCompleted(next);
+        setOverride(next);
+        // The tree and the catalog re-read on their next mount rather than showing a
+        // percentage that no longer matches this button.
+        invalidateProgress();
         posthog.capture(next ? "lesson_completed" : "lesson_uncompleted", {
           lesson_slug: lessonSlug,
           course_slug: courseSlug,
           module_index: moduleIndex,
         });
       }}
-      className={`inline-flex h-14 items-center gap-3 rounded-md border px-6 text-[15px] leading-[22px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:opacity-60 ${
+      className={cn(
+        "inline-flex h-11 items-center gap-2 rounded-sm border px-4 text-[15px] font-medium transition-colors disabled:opacity-60",
         isComplete
-          ? "border-transparent bg-primary-100 text-primary-600"
-          : "border-line bg-surface text-neutral-900 hover:bg-primary-100"
-      }`}
+          ? "border-transparent bg-accent-soft text-accent"
+          : "border-line-strong text-ink hover:border-ink hover:bg-raised",
+      )}
     >
-      <CircleCheck size={18} aria-hidden="true" />
+      <Check size={16} aria-hidden="true" />
       {isComplete ? "Completed" : "Mark as complete"}
     </button>
   );
 }
-
-/** The icon-only bookmark control in the lesson header. Presentational (AGENTS §7). */

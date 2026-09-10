@@ -39,7 +39,7 @@ export function Logo({
     <span className={cn("inline-flex items-center gap-2", className)}>
       <LogoMark size={size} className="text-accent" />
       {/* Mark only on the narrowest screens, so headers keep room for their actions. */}
-      <span className="hidden text-[17px] leading-6 font-semibold tracking-[-0.03em] text-ink sm:inline">
+      <span className="hidden font-hero text-[16px] leading-6 font-medium tracking-[0.02em] text-ink sm:inline">
         Vertex
       </span>
     </span>

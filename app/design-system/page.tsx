@@ -107,7 +107,7 @@ function Swatches({ theme }: { theme: "light" | "dark" }) {
 /* --- 02 Type ------------------------------------------------------------- */
 
 const typeScale: { name: string; className: string; spec: string; use: string }[] = [
-  { name: "Display", className: "text-display", spec: "Inter 600 · 36–52 / 1.06", use: "Page hero" },
+  { name: "Display", className: "text-display", spec: "Orbitron 600 · 28–44 / 1.14", use: "Page hero" },
   { name: "Title", className: "text-title", spec: "Inter 600 · 32 / 40", use: "Page titles" },
   { name: "Heading 1", className: "text-heading-1", spec: "Inter 600 · 24 / 32", use: "Section titles" },
   { name: "Heading 2", className: "text-heading-2", spec: "Inter 600 · 20 / 28", use: "Card titles" },
@@ -115,8 +115,8 @@ const typeScale: { name: string; className: string; spec: string; use: string }[
   { name: "Body large", className: "text-body-lg", spec: "Inter 400 · 17 / 26", use: "Lede, notes" },
   { name: "Body", className: "text-body", spec: "Inter 400 · 15 / 22", use: "Body copy" },
   { name: "Small", className: "text-small", spec: "Inter 400 · 13 / 18", use: "Captions" },
-  { name: "Meta", className: "text-meta", spec: "Mono 500 · 12 / 16 · 0.06em", use: "Labels, badges" },
-  { name: "Data", className: "text-data", spec: "Mono 400 · 13 / 18 · tabular", use: "Timestamps, counts" },
+  { name: "Meta", className: "text-meta", spec: "Space Mono 700 · 12 / 16", use: "Labels, badges" },
+  { name: "Data", className: "text-data", spec: "Space Mono 400 · 13 / 18", use: "Timestamps, counts" },
 ];
 
 /* --- 03 Shape ------------------------------------------------------------ */
@@ -181,8 +181,9 @@ export default function DesignSystemPage() {
             <Logo size={26} />
             <h1 className="mt-6 text-display text-ink">Signal</h1>
             <p className="mt-3 max-w-xl text-body-lg text-ink-muted">
-              The Vertex design language. Semantic tokens, two themes, one accent, and
-              monospace for anything a learner reads as data.
+              The Vertex design language. Semantic tokens, two themes, one accent.
+              Orbitron for the wordmark and the hero, Space Mono for anything a learner
+              reads as data, Inter for everything else.
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -386,9 +387,9 @@ export default function DesignSystemPage() {
             ))}
           </ul>
           <p className="mt-6 border-t border-line pt-4 text-small text-ink-muted">
-            Not on this sheet yet: course, lesson and result cards, the header, breadcrumbs
-            and pagination. They still carry the old classes through the compatibility
-            aliases in globals.css, and are rebuilt in phase 2.
+            Composite surfaces — the catalog card, the two search result cards, the header
+            and the lesson tree — are built from these tokens and are best read in place on
+            the pages themselves.
           </p>
         </Panel>
       </div>

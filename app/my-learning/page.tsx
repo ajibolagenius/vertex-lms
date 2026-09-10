@@ -6,8 +6,7 @@ import { ArrowRight } from "lucide-react";
 
 import { ResumeLink } from "@/components/analytics/resume-link";
 import { ViewTracker } from "@/components/analytics/view-tracker";
-import { SiteHeader } from "@/components/nav/site-header";
-import { Card } from "@/components/ui/card";
+import { Shell } from "@/components/shell";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { pluralize } from "@/lib/format";
 import { groupByCourse } from "@/lib/progress";
@@ -33,77 +32,73 @@ export default async function MyLearningPage() {
   const courses = groupByCourse(await readProgress(userId));
 
   return (
-    <div className="flex-1 bg-hatch px-0 sm:px-8">
-      <div className="mx-auto w-full max-w-[1440px] border-x border-line bg-paper">
-        <SiteHeader />
-        <ViewTracker event="my_learning_viewed" properties={{ course_count: courses.length }} />
+    <Shell>
+      <ViewTracker event="my_learning_viewed" properties={{ course_count: courses.length }} />
 
-        <main className="px-6 pt-14 pb-16 sm:px-12">
-          <div className="flex flex-wrap items-baseline justify-between gap-4">
-            <h1 className="font-display text-[28px] leading-[38px] text-black">My Learning</h1>
-            {courses.length > 0 && (
-              <p className="text-[15px] leading-[22px] text-neutral-500">
-                {pluralize(courses.length, "course")} in progress
-              </p>
-            )}
-          </div>
+      <header className="flex flex-wrap items-baseline justify-between gap-4 pt-12">
+        <div>
+          <p className="text-meta text-ink-muted">Your progress</p>
+          <h1 className="mt-3 text-title text-ink">My learning</h1>
+        </div>
+        {courses.length > 0 && (
+          <p className="text-data text-ink-muted">
+            {pluralize(courses.length, "course")} in progress
+          </p>
+        )}
+      </header>
 
-          {courses.length === 0 ? (
-            <div className="mt-8 max-w-[520px]">
-              <p className="text-[16px] leading-[24px] text-neutral-500">
-                You have not started a course yet. Open a lesson and it will show up here with
-                your progress and a link back to where you left off.
-              </p>
-              <Link
-                href="/courses"
-                className="mt-6 inline-flex items-center gap-2 text-[15px] leading-[22px] font-semibold text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-              >
-                Browse all courses
-                <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            </div>
-          ) : (
-            <ul className="mt-8 grid gap-4 lg:grid-cols-2">
-              {courses.map((course) => (
-                <li key={course.slug}>
-                  <Card className="flex h-full flex-col gap-5">
-                    <div>
-                      <Link
-                        href={`/courses/${course.slug}`}
-                        className="font-display text-[20px] leading-[28px] font-bold text-black hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-                      >
-                        {course.title}
-                      </Link>
-                      <p className="mt-1 text-[14px] leading-[20px] text-neutral-500">
-                        {course.completedCount} of {pluralize(course.totalCount, "lesson")}{" "}
-                        complete
-                      </p>
-                    </div>
+      {courses.length === 0 ? (
+        <div className="mt-10 max-w-[52ch]">
+          <p className="text-body text-ink-muted">
+            You have not started a course yet. Open a lesson and it will show up here with
+            your progress and a link back to where you left off.
+          </p>
+          <Link
+            href="/courses"
+            className="mt-5 inline-flex items-center gap-2 text-body text-accent hover:text-accent-hover"
+          >
+            Browse all courses
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+      ) : (
+        <ul className="mt-8 divide-y divide-line border-y border-line">
+          {courses.map((course) => (
+            <li
+              key={course.slug}
+              className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:gap-8"
+            >
+              <div className="min-w-0 lg:w-[38%]">
+                <Link
+                  href={`/courses/${course.slug}`}
+                  className="text-heading-3 text-ink hover:text-accent"
+                >
+                  {course.title}
+                </Link>
+                <p className="mt-1 text-data text-ink-muted">
+                  {course.completedCount} of {pluralize(course.totalCount, "lesson")} complete
+                </p>
+              </div>
 
-                    <ProgressBar value={course.percent} />
+              <ProgressBar value={course.percent} className="lg:w-[28%]" />
 
-                    <div className="mt-auto pt-1">
-                      {course.resume ? (
-                        <ResumeLink
-                          href={course.resume.href}
-                          title={course.resume.title}
-                          lessonSlug={course.resume.slug}
-                          courseSlug={course.slug}
-                          positionSeconds={course.resume.positionSeconds}
-                        />
-                      ) : (
-                        <p className="text-[15px] leading-[22px] font-semibold text-success">
-                          Course complete
-                        </p>
-                      )}
-                    </div>
-                  </Card>
-                </li>
-              ))}
-            </ul>
-          )}
-        </main>
-      </div>
-    </div>
+              <div className="min-w-0 lg:ml-auto lg:text-right">
+                {course.resume ? (
+                  <ResumeLink
+                    href={course.resume.href}
+                    title={course.resume.title}
+                    lessonSlug={course.resume.slug}
+                    courseSlug={course.slug}
+                    positionSeconds={course.resume.positionSeconds}
+                  />
+                ) : (
+                  <p className="text-data text-success">Course complete</p>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Shell>
   );
 }

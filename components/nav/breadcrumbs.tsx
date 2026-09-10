@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type Crumb = { label: string; href?: string };
 
+/** Mono and slash-separated, so it reads as a path rather than as prose. */
 export function Breadcrumbs({
   items,
   className,
@@ -13,35 +13,29 @@ export function Breadcrumbs({
 }) {
   return (
     <nav aria-label="Breadcrumb" className={className}>
-      <ol className="flex flex-wrap items-center gap-2 text-[14px] leading-[20px]">
+      <ol className="flex flex-wrap items-center gap-2 text-data text-ink-muted">
         {/* Keyed by position: two crumbs can share a label — a lesson whose title
-            matches its module's, as in the reference design — and the list is
-            static per render, never reordered. */}
+            matches its module's — and the list is static per render, never reordered. */}
         {items.map((item, i) => {
           const isLast = i === items.length - 1;
           return (
             <li key={i} className="flex items-center gap-2">
               {item.href && !isLast ? (
-                <Link
-                  href={item.href}
-                  className="text-neutral-700 hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-                >
+                <Link href={item.href} className="transition-colors hover:text-ink">
                   {item.label}
                 </Link>
               ) : (
                 <span
                   aria-current={isLast ? "page" : undefined}
-                  className={cn(isLast ? "text-neutral-500" : "text-neutral-700")}
+                  className={cn("max-w-[40ch] truncate", isLast && "text-ink")}
                 >
                   {item.label}
                 </span>
               )}
               {!isLast && (
-                <ChevronRight
-                  size={16}
-                  aria-hidden="true"
-                  className="text-neutral-300"
-                />
+                <span aria-hidden="true" className="text-ink-disabled">
+                  /
+                </span>
               )}
             </li>
           );

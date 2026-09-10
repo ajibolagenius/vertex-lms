@@ -84,12 +84,6 @@ export function SearchResults() {
 
   return (
     <>
-      <p className="mt-4 min-h-[22px] text-center text-[15px] leading-[22px] text-neutral-500">
-        {done
-          ? `Found ${pluralize(done.count, "result")} across ${pluralize(done.courseCount, "course")}`
-          : ""}
-      </p>
-
       <SearchForm
         id="search-results-query"
         source="results"
@@ -98,18 +92,20 @@ export function SearchResults() {
         // Remounts on a new query so the field shows what the URL says after navigation.
         key={query}
         label="Search courses and lessons"
-        className="mx-auto mt-6 w-full max-w-[725px]"
+        className="mt-8 w-full"
       />
 
       {query && (
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
-          <p className="text-[16px] leading-[24px] font-medium text-neutral-900">
-            {done ? pluralize(done.count, "result") : " "}
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+          <p role="status" className="text-data text-ink-muted">
+            {done
+              ? `${pluralize(done.count, "result")} across ${pluralize(done.courseCount, "course")}`
+              : "Searching…"}
           </p>
           <Select
             id="search-sort"
             label="Sort results"
-            className="w-[164px]"
+            className="w-[160px]"
             options={SORTS.map((option) => SORT_LABELS[option])}
             value={SORT_LABELS[sort]}
             onChange={(event) => {
@@ -126,18 +122,16 @@ export function SearchResults() {
         </div>
       )}
 
-      <div className="mt-4 flex flex-col gap-4">
+      <div className="mt-6 flex flex-col gap-3">
         {status === "loading" && <Skeletons />}
 
         {status === "error" && (
-          <div className="rounded-lg border border-neutral-200 bg-white p-6 text-center">
-            <p className="text-[15px] leading-[22px] text-neutral-700">
-              Search is unavailable right now.
-            </p>
+          <div className="rounded-md border border-line bg-surface p-6">
+            <p className="text-body text-ink">Search is unavailable right now.</p>
             <button
               type="button"
               onClick={() => setAttempt((value) => value + 1)}
-              className="mt-3 text-[14px] leading-[20px] font-semibold text-primary-500 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+              className="mt-3 text-body text-accent hover:text-accent-hover"
             >
               Retry
             </button>
@@ -166,14 +160,14 @@ function Skeletons() {
         <div
           key={row}
           aria-hidden="true"
-          className="flex animate-pulse flex-col gap-5 rounded-lg border border-neutral-200 bg-white p-4 sm:flex-row"
+          className="flex animate-pulse flex-col gap-5 rounded-md border border-line bg-surface p-4 sm:flex-row"
         >
-          <div className="aspect-video w-full shrink-0 rounded-md bg-neutral-100 sm:w-[276px]" />
+          <div className="aspect-video w-full shrink-0 rounded-sm bg-raised sm:w-[240px]" />
           <div className="flex flex-1 flex-col gap-3 py-1">
-            <div className="h-4 w-40 rounded bg-neutral-100" />
-            <div className="h-5 w-2/3 rounded bg-neutral-100" />
-            <div className="h-4 w-full rounded bg-neutral-100" />
-            <div className="mt-auto h-4 w-1/3 rounded bg-neutral-100" />
+            <div className="h-3 w-40 rounded-xs bg-raised" />
+            <div className="h-5 w-2/3 rounded-xs bg-raised" />
+            <div className="h-3 w-full rounded-xs bg-raised" />
+            <div className="mt-auto h-3 w-1/3 rounded-xs bg-raised" />
           </div>
         </div>
       ))}
@@ -186,29 +180,19 @@ function Skeletons() {
 
 function EmptyStrip() {
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-lg bg-primary-100 px-6 py-5">
-      <span className="flex items-center gap-4">
-        <span
-          aria-hidden="true"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-primary-500"
-        >
-          <Search size={20} />
-        </span>
-        <span>
-          <span className="block text-[16px] leading-[24px] font-semibold text-neutral-900">
-            Can&rsquo;t find what you&rsquo;re looking for?
-          </span>
-          <span className="block text-[14px] leading-[20px] text-neutral-700">
-            Try different keywords or browse our full course catalog.
-          </span>
+    <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-md border border-line bg-raised px-5 py-4">
+      <span className="flex items-center gap-3">
+        <Search size={18} aria-hidden="true" className="shrink-0 text-ink-muted" />
+        <span className="text-body text-ink-muted">
+          Not what you were after? Try different keywords, or browse the full catalog.
         </span>
       </span>
       <Link
         href="/courses"
-        className="inline-flex h-11 items-center gap-2 rounded-md bg-white px-5 text-[14px] font-semibold text-primary-500 hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+        className="inline-flex items-center gap-1.5 text-body text-accent hover:text-accent-hover"
       >
         Browse all courses
-        <ArrowRight size={16} aria-hidden="true" />
+        <ArrowRight size={15} aria-hidden="true" />
       </Link>
     </div>
   );

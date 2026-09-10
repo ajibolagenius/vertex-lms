@@ -2,14 +2,13 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** 1, 2, 3, …, total — the shape shown in the design sheet. */
+/** 1, 2, 3, …, total. */
 function pageItems(total: number): (number | "ellipsis")[] {
   if (total <= 4) return Array.from({ length: total }, (_, i) => i + 1);
   return [1, 2, 3, "ellipsis", total];
 }
 
-const box =
-  "inline-flex size-9 items-center justify-center rounded-sm text-[14px] leading-[20px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500";
+const box = "inline-flex size-8 items-center justify-center rounded-xs text-data";
 
 export function Pagination({
   page,
@@ -30,14 +29,14 @@ export function Pagination({
             href={hrefFor(Math.max(1, page - 1))}
             aria-label="Previous page"
             aria-disabled={page === 1 || undefined}
-            className={cn(box, "text-neutral-500 hover:text-neutral-900")}
+            className={cn(box, "text-ink-muted hover:bg-raised hover:text-ink")}
           >
-            <ChevronLeft size={16} aria-hidden="true" />
+            <ChevronLeft size={15} aria-hidden="true" />
           </Link>
         </li>
         {pageItems(totalPages).map((item, i) =>
           item === "ellipsis" ? (
-            <li key={`ellipsis-${i}`} className={cn(box, "text-neutral-500")}>
+            <li key={`ellipsis-${i}`} className={cn(box, "text-ink-disabled")}>
               &hellip;
             </li>
           ) : (
@@ -48,8 +47,8 @@ export function Pagination({
                 className={cn(
                   box,
                   item === page
-                    ? "border border-primary-500 font-medium text-primary-500"
-                    : "text-neutral-700 hover:text-primary-500",
+                    ? "bg-ink text-canvas"
+                    : "text-ink-muted hover:bg-raised hover:text-ink",
                 )}
               >
                 {item}
@@ -62,9 +61,9 @@ export function Pagination({
             href={hrefFor(Math.min(totalPages, page + 1))}
             aria-label="Next page"
             aria-disabled={page === totalPages || undefined}
-            className={cn(box, "text-neutral-500 hover:text-neutral-900")}
+            className={cn(box, "text-ink-muted hover:bg-raised hover:text-ink")}
           >
-            <ChevronRight size={16} aria-hidden="true" />
+            <ChevronRight size={15} aria-hidden="true" />
           </Link>
         </li>
       </ul>

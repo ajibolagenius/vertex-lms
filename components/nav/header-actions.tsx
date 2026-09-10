@@ -4,48 +4,47 @@ import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { cn } from "@/lib/utils";
 import posthog from "posthog-js";
 
-export function HeaderActions() {
+export function HeaderActions({ className }: { className?: string }) {
   return (
-    <div className="flex shrink-0 items-center gap-4 sm:gap-5">
+    <div className={cn("flex shrink-0 items-center gap-2 sm:gap-3", className)}>
       <ThemeToggle />
       <button
         type="button"
         aria-label="Notifications"
-        className="rounded-full p-1 text-neutral-900 hover:text-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+        className="hidden size-9 items-center justify-center rounded-sm text-ink-muted transition-colors hover:bg-raised hover:text-ink sm:inline-flex"
         onClick={() => posthog.capture("notification_bell_clicked")}
       >
-        <Bell size={22} strokeWidth={1.5} aria-hidden="true" />
+        <Bell size={17} aria-hidden="true" />
       </button>
       <Show when="signed-in">
         <UserButton
           appearance={{
             elements: {
-              userButtonAvatarBox:
-                "size-[50px] border border-line bg-primary-100",
-              userButtonTrigger:
-                "rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+              userButtonAvatarBox: "size-8 border border-line",
+              userButtonTrigger: "rounded-full",
             },
           }}
         />
       </Show>
       <Show when="signed-out">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <SignInButton>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => posthog.capture("sign_in_clicked")}
-            >
-              Sign in
-            </Button>
-          </SignInButton>
+        <div className="flex items-center gap-2">
+          {/* Wrapped: Clerk clones its child, so the responsive class goes outside it. */}
+          <span className="hidden sm:inline-flex">
+            <SignInButton>
+              <Button
+                variant="text"
+                size="md"
+                onClick={() => posthog.capture("sign_in_clicked")}
+              >
+                Sign in
+              </Button>
+            </SignInButton>
+          </span>
           <SignUpButton>
-            <Button
-              size="md"
-              onClick={() => posthog.capture("sign_up_clicked")}
-            >
+            <Button size="md" onClick={() => posthog.capture("sign_up_clicked")}>
               Sign up
             </Button>
           </SignUpButton>

@@ -40,14 +40,12 @@ export async function GET() {
   const { userId } = await auth();
   if (!userId) return Response.json({ error: "Sign in required." }, { status: 401 });
 
-  const records = await readProgress(userId);
-  return Response.json({
-    lessons: records.map((record) => ({
-      lessonId: record.lessonId,
-      completed: Boolean(record.completed),
-      positionSeconds: record.positionSeconds ?? 0,
-    })),
-  });
+  /**
+   * The learner's own records, in the shape `lib/progress.ts` already groups — the
+   * lesson page, the course page and the catalog all derive their marks from this one
+   * read, so those routes stay prerendered instead of turning dynamic on `auth()`.
+   */
+  return Response.json({ records: await readProgress(userId) });
 }
 
 export async function POST(request: Request) {
