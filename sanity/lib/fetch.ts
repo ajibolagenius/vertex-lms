@@ -7,6 +7,50 @@ import {client, freshClient} from './client'
 
 try {
   dns.setDefaultResultOrder('ipv4first')
+  const origLookup = dns.lookup
+  const resolver = new dns.promises.Resolver()
+  resolver.setServers(['8.8.8.8', '1.1.1.1'])
+  const cache = new Map<string, string[]>()
+
+  type LookupCallback = (err: NodeJS.ErrnoException | null, address?: unknown, family?: unknown) => void
+
+  // @ts-expect-error - overriding lookup for fallback resilience
+  dns.lookup = function (
+    hostname: string,
+    options: dns.LookupOptions | number | null | undefined | LookupCallback,
+    callback?: LookupCallback
+  ) {
+    let cb = callback
+    let opts = options
+    if (typeof opts === 'function') {
+      cb = opts
+      opts = {}
+    }
+    const resolvedCb = cb ?? (() => {})
+    // @ts-expect-error - runtime overload passthrough
+    origLookup(hostname, opts, async (err: NodeJS.ErrnoException | null, address: unknown, family: unknown) => {
+      if (err && (err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN' || err.code === 'SERVFAIL')) {
+        try {
+          let addresses = cache.get(hostname)
+          if (!addresses) {
+            addresses = await resolver.resolve4(hostname)
+            if (addresses && addresses.length > 0) {
+              cache.set(hostname, addresses)
+            }
+          }
+          if (addresses && addresses.length > 0) {
+            if (opts && typeof opts === 'object' && 'all' in opts && opts.all) {
+              return resolvedCb(null, addresses.map((a) => ({ address: a, family: 4 })))
+            }
+            return resolvedCb(null, addresses[0], 4)
+          }
+        } catch {
+          return resolvedCb(err)
+        }
+      }
+      return resolvedCb(err, address, family)
+    })
+  }
 } catch {
   // Non-fatal if not supported
 }

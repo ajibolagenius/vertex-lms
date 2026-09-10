@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS=\"--require ./scripts/dns-fallback.cjs\" next build",
     "start": "next start",
     "lint": "eslint",
     "typegen": "npm --prefix studio run typegen",
