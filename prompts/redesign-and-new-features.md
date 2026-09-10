@@ -205,13 +205,21 @@ Two deviations from the plan above, both deliberate:
   out of range and is dropped; a second it invents would look plausible. Grounding by
   structure rather than by instruction.
 
-### Phase 5 — Quizzes + streaks
-- `studio/schemaTypes/objects/quiz-question.ts` (new), `documents/lesson.ts` (+`quiz`),
-  `documents/progress.ts` (+`quizScore`, `quizTakenAt`).
-- `studio/scripts/quizzes/{generate.mjs,README.md}` (new).
-- `lib/quiz.ts` + `lib/quiz.check.mjs`, `lib/streak.ts` + `lib/streak.check.mjs`.
-- `app/api/progress/route.ts` — accept the two new fields (same schema-guard style).
-- `components/lesson/quiz-panel.tsx` (new), `app/my-learning/page.tsx` (streak).
+### Phase 5 — Quizzes + streaks (done)
+- `studio/schemaTypes/objects/quiz-question.ts` and `documents/quiz.ts` (new),
+  `documents/progress.ts` (+`quizScore`, `quizTakenAt`). Schema deployed.
+- `studio/scripts/quizzes/{generate.mjs,README.md}` (new) + `quizzes:generate` /
+  `quizzes:import` scripts.
+- `lib/quiz.ts` + `lib/streak.ts` with `check:quiz` and `check:streak`.
+- `app/api/progress/route.ts` accepts `quizScore` and stamps `quizTakenAt` server-side.
+- `components/lesson/quiz-panel.tsx` (new) as a third rail tab; `lib/progress.ts` and
+  `/my-learning` carry the streak and per-course quiz averages.
+
+One deviation from the plan above: **the quiz is its own document type, not a field on
+`lesson`.** Same reasoning as `video`: a generated artefact stays out of author-owned
+documents, and a stable `quiz.<slug>` id means the import is a whole-document
+`--replace` needing no write token, exactly like the video pipeline. The lesson query
+picks it up by reverse reference.
 
 ### Phase 6 — Collections
 - `studio/schemaTypes/documents/collection.ts` (new).

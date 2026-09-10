@@ -356,6 +356,7 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[slug]"
               courseSlug={course?.slug ?? undefined}
               chapters={video?.chapters ?? []}
               chunks={video?.chunks ?? []}
+              quiz={lesson.quiz ?? []}
             />
           </aside>
         </div>

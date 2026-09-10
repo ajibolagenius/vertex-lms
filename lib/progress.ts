@@ -8,6 +8,8 @@
 export type ProgressRecord = {
   completed?: boolean | null;
   positionSeconds?: number | null;
+  /** The learner's latest score on this lesson's quiz, if they have taken it. */
+  quizScore?: number | null;
   updatedAt?: string | null;
   lessonId?: string | null;
   lesson?: {title?: string | null; slug?: string | null} | null;
@@ -27,6 +29,9 @@ export type CourseProgress = {
   percent: number;
   /** Most recently touched lesson that is not complete, if any. */
   resume: {title: string; slug: string; href: string; positionSeconds: number} | null;
+  /** Quizzes taken in this course, and the mean score across them. */
+  quizzesTaken: number;
+  quizAverage: number | null;
   updatedAt: string;
 };
 
@@ -56,6 +61,9 @@ export function groupByCourse(records: ProgressRecord[]): CourseProgress[] {
     const lessonIds = (record.course?.lessonIds ?? []).filter(Boolean);
     const completedCount = entries.filter((entry) => entry.completed).length;
     const totalCount = Math.max(lessonIds.length, entries.length);
+    const scores = entries
+      .map((entry) => entry.quizScore)
+      .filter((score): score is number => typeof score === "number");
 
     return {
       slug,
@@ -63,6 +71,10 @@ export function groupByCourse(records: ProgressRecord[]): CourseProgress[] {
       completedCount,
       totalCount,
       percent: totalCount ? Math.round((completedCount / totalCount) * 100) : 0,
+      quizzesTaken: scores.length,
+      quizAverage: scores.length
+        ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+        : null,
       resume: next
         ? {
             title: next.lesson?.title ?? "Continue",

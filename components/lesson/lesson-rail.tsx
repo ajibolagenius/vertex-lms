@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { AskPanel } from "@/components/lesson/ask-panel";
+import { QuizPanel } from "@/components/lesson/quiz-panel";
 import { TranscriptPanel } from "@/components/lesson/transcript-panel";
+import type { Question } from "@/lib/quiz";
 import type { Chapter, Chunk } from "@/lib/transcript";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +13,8 @@ import { cn } from "@/lib/utils";
  * of scrollbars.
  *
  * A lesson whose video has not been ingested has no transcript, so that tab is simply
- * not offered — asking still works, from the notes alone.
+ * not offered — asking still works, from the notes alone. Same for a lesson with no
+ * generated quiz.
  */
 export function LessonRail({
   lessonId,
@@ -19,21 +22,25 @@ export function LessonRail({
   courseSlug,
   chapters,
   chunks,
+  quiz,
 }: {
   lessonId: string;
   lessonSlug: string;
   courseSlug?: string;
   chapters: Chapter[];
   chunks: Chunk[];
+  quiz: Question[];
 }) {
   const hasTranscript = chunks.length > 0;
-  const [tab, setTab] = useState<"transcript" | "ask">(
+  const hasQuiz = quiz.length > 0;
+  const [tab, setTab] = useState<"transcript" | "ask" | "quiz">(
     hasTranscript ? "transcript" : "ask",
   );
 
   const tabs = [
     ...(hasTranscript ? ([{ id: "transcript", label: "Transcript" }] as const) : []),
     { id: "ask", label: "Ask" } as const,
+    ...(hasQuiz ? ([{ id: "quiz", label: "Quiz" }] as const) : []),
   ];
 
   return (
@@ -58,15 +65,24 @@ export function LessonRail({
         ))}
       </div>
 
-      {tab === "transcript" && hasTranscript ? (
+      {tab === "transcript" && hasTranscript && (
         <TranscriptPanel
           chapters={chapters}
           chunks={chunks}
           lessonSlug={lessonSlug}
           courseSlug={courseSlug}
         />
-      ) : (
+      )}
+      {tab === "ask" && (
         <AskPanel lessonId={lessonId} lessonSlug={lessonSlug} courseSlug={courseSlug} />
+      )}
+      {tab === "quiz" && hasQuiz && (
+        <QuizPanel
+          lessonId={lessonId}
+          lessonSlug={lessonSlug}
+          courseSlug={courseSlug}
+          questions={quiz}
+        />
       )}
     </>
   );

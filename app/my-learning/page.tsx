@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Flame } from "lucide-react";
 
 import { ResumeLink } from "@/components/analytics/resume-link";
 import { ViewTracker } from "@/components/analytics/view-tracker";
@@ -11,6 +11,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { pluralize } from "@/lib/format";
 import { groupByCourse } from "@/lib/progress";
 import { readProgress } from "@/lib/progress-server";
+import { currentStreak } from "@/lib/streak";
 
 export const metadata: Metadata = {
   title: "My Learning — Vertex",
@@ -29,7 +30,13 @@ export default async function MyLearningPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const courses = groupByCourse(await readProgress(userId));
+  const records = await readProgress(userId);
+  const courses = groupByCourse(records);
+  /* Derived from the records themselves — see the ceiling noted in lib/streak.ts. */
+  const streak = currentStreak(
+    records.map((record) => record.updatedAt),
+    new Date(),
+  );
 
   return (
     <Shell>
@@ -40,11 +47,26 @@ export default async function MyLearningPage() {
           <p className="text-meta text-ink-muted">Your progress</p>
           <h1 className="mt-3 text-title text-ink">My learning</h1>
         </div>
-        {courses.length > 0 && (
-          <p className="text-data text-ink-muted">
-            {pluralize(courses.length, "course")} in progress
-          </p>
-        )}
+        <div className="flex items-center gap-5">
+          {streak.days > 0 && (
+            <p className="flex items-center gap-2 text-data text-ink">
+              <Flame
+                size={15}
+                aria-hidden="true"
+                className={streak.activeToday ? "text-accent" : "text-ink-disabled"}
+              />
+              {streak.days}-day streak
+              {!streak.activeToday && (
+                <span className="text-ink-muted">· nothing today yet</span>
+              )}
+            </p>
+          )}
+          {courses.length > 0 && (
+            <p className="text-data text-ink-muted">
+              {pluralize(courses.length, "course")} in progress
+            </p>
+          )}
+        </div>
       </header>
 
       {courses.length === 0 ? (
@@ -77,6 +99,10 @@ export default async function MyLearningPage() {
                 </Link>
                 <p className="mt-1 text-data text-ink-muted">
                   {course.completedCount} of {pluralize(course.totalCount, "lesson")} complete
+                  {course.quizzesTaken > 0 &&
+                    ` · ${course.quizzesTaken} ${
+                      course.quizzesTaken === 1 ? "quiz" : "quizzes"
+                    } at ${course.quizAverage}%`}
                 </p>
               </div>
 

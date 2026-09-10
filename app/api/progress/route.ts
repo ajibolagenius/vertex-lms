@@ -34,6 +34,8 @@ const ProgressWriteSchema = z.object({
   lessonId: z.string().regex(SANITY_ID),
   completed: z.boolean().optional(),
   positionSeconds: z.number().int().min(0).max(86_400).optional(),
+  /** The learner's latest quiz result. `quizTakenAt` is stamped here, never sent. */
+  quizScore: z.number().int().min(0).max(100).optional(),
 });
 
 export async function GET() {
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return Response.json({ error: "Invalid progress payload." }, { status: 400 });
   }
-  const { lessonId, completed, positionSeconds } = parsed.data;
+  const { lessonId, completed, positionSeconds, quizScore } = parsed.data;
 
   const _id = `progress.${userId}.${lessonId}`;
 
@@ -81,6 +83,10 @@ export async function POST(request: Request) {
           updatedAt: new Date().toISOString(),
           ...(completed === undefined ? {} : { completed }),
           ...(positionSeconds === undefined ? {} : { positionSeconds }),
+          // The time comes from the server, so a client cannot backdate a result.
+          ...(quizScore === undefined
+            ? {}
+            : { quizScore, quizTakenAt: new Date().toISOString() }),
         },
       })
       .commit({ visibility: "async" });

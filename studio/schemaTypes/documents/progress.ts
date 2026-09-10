@@ -44,6 +44,17 @@ export const progress = defineType({
       validation: (rule) => rule.integer().min(0),
     }),
     defineField({
+      name: 'quizScore',
+      title: 'Quiz score (percent)',
+      description: 'The learner\'s most recent score on this lesson\'s quiz.',
+      type: 'number',
+      validation: (rule) => rule.integer().min(0).max(100),
+    }),
+    defineField({
+      name: 'quizTakenAt',
+      type: 'datetime',
+    }),
+    defineField({
       name: 'updatedAt',
       type: 'datetime',
     }),

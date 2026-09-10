@@ -3,6 +3,7 @@ export async function saveProgress(body: {
   lessonId: string;
   completed?: boolean;
   positionSeconds?: number;
+  quizScore?: number;
 }): Promise<boolean> {
   try {
     const response = await fetch("/api/progress", {

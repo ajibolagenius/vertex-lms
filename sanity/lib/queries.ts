@@ -69,6 +69,9 @@ export const COURSE_BY_SLUG_QUERY = defineQuery(/* groq */ `
  * A lesson stores no parent course, so the course is found by reverse reference.
  * The full module tree comes back because the lesson page's sidebar renders it and
  * derives "Module 5 of 12" / "Lesson 5.1" from position.
+ *
+ * The quiz arrives the same way. It is a generated document keyed to the lesson, like
+ * `video`, so a lesson without one simply has `null` here and the rail offers no tab.
  */
 export const LESSON_BY_SLUG_QUERY = defineQuery(/* groq */ `
   *[_type == "lesson" && slug.current == $slug][0] {
@@ -89,6 +92,14 @@ export const LESSON_BY_SLUG_QUERY = defineQuery(/* groq */ `
       title,
       description,
       url
+    },
+    "quiz": *[_type == "quiz" && lesson._ref == ^._id][0].questions[]{
+      _key,
+      question,
+      options,
+      answerIndex,
+      explanation,
+      startSeconds
     },
     "course": *[_type == "course" && references(^._id)][0]{
       _id,
@@ -227,6 +238,7 @@ export const PROGRESS_BY_USER_QUERY = defineQuery(/* groq */ `
   *[_type == "progress" && userId == $userId] | order(updatedAt desc) {
     completed,
     positionSeconds,
+    quizScore,
     updatedAt,
     "lessonId": lesson._ref,
     lesson->{
