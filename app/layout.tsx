@@ -80,9 +80,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${mono.variable} ${display.variable} h-full antialiased`}
+      className={`${inter.variable} ${mono.variable} ${display.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* Full height comes from `min-h-dvh` on the body, never `height: 100%` on <html>:
+          with `viewportFit: "cover"` a pinned-height root stops iOS touch-scrolling the
+          document, which strands overflowing content below the fold. */}
+      <body className="min-h-dvh flex flex-col">
         <Script
           id="vertex-theme"
           strategy="beforeInteractive"
