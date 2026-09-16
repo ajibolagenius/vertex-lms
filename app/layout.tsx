@@ -34,7 +34,6 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -82,9 +81,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${inter.variable} ${mono.variable} ${display.variable} antialiased`}
     >
-      {/* Full height comes from `min-h-dvh` on the body, never `height: 100%` on <html>:
-          with `viewportFit: "cover"` a pinned-height root stops iOS touch-scrolling the
-          document, which strands overflowing content below the fold. */}
+      {/* Full height comes from `min-h-dvh` on the body. The viewport keeps the browser
+          default (no `viewport-fit: cover`): cover, plus safe-area padding on this scroll
+          root, stopped iOS Chrome from touch-scrolling the document and stranded content
+          below the fold. */}
       <body className="min-h-dvh flex flex-col">
         <Script
           id="vertex-theme"
