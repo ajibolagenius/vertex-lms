@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import { ui } from "@clerk/ui";
 import { PostHogIdentify } from "@/components/posthog-identify";
 import { PwaRegister } from "@/components/pwa-register";
 import type { Metadata, Viewport } from "next";
@@ -91,7 +92,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
         />
-        <ClerkProvider>
+        {/* Bundle Clerk's UI rather than fetch it at runtime from Clerk's CDN, where a slow
+            chunk request timed out into an unhandled ChunkLoadError. The bundled chunks are
+            same-origin, pinned by the lockfile, and cached by the service worker. With the UI
+            bundled, the SDK's preload of the CDN copy is unused, so prefetchUI is off. */}
+        <ClerkProvider ui={ui} prefetchUI={false}>
           <PostHogIdentify />
           <PwaRegister />
           {children}
